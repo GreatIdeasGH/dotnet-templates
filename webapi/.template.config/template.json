@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "Gerald Maale",
+    "classifications": [
+        "Web API",
+        "Class Library"
+    ],
+    "name": "GreatIdeas Web API",
+    "identity": "GreatIdeas.Template.Application",
+    "groupIdentity": "GreatIdeas.Template.WebAPI",
+    "shortName": "greatideas-webapi",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    },
+    "sourceName": "GreatIdeas.Template",
+    "preferNameDirectory": true,
+    "symbols": {
+        "includetest": {
+            "type": "parameter",
+            "datatype": "bool",
+            "defaultValue": "true"
+        }
+    },
+    "sources": [
+        {
+            "exclude": [
+                ".idea/**/*"
+            ]
+        }
+    ]
+}

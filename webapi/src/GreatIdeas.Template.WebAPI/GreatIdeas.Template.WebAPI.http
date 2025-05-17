@@ -1,0 +1,6 @@
+@GreatIdeas.Template.WebAPI_HostAddress = http://localhost:5034
+
+GET {{GreatIdeas.Template.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
