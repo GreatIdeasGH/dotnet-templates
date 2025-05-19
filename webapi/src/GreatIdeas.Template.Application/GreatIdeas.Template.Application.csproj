@@ -21,13 +21,41 @@
         <PackageReference Include="Microsoft.AspNetCore.Authorization" />
         <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
         <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" />        
+        <PackageReference Include="Microsoft.EntityFrameworkCore" />
+        <PackageReference Include="Mono.TextTemplating" />        
         <PackageReference Include="Serilog.Extensions.Logging" />
         <PackageReference Include="SixLabors.ImageSharp" />
     </ItemGroup>
-    
+
+    <!-- Preprocess Text Templates -->
+    <!--<ItemGroup>
+      <TextTemplate Include="**\*.tt" />
+      <Generated Include="**\*.Generated.cs" />
+    </ItemGroup>
+
+    <Target Name="TextTemplateTransform" BeforeTargets="BeforeBuild">
+        <Exec WorkingDirectory="$(ProjectDir)" Command="t4 %(TextTemplate.Identity) -c $(RootNameSpace).%(TextTemplate.Filename) -o Authorizations\PolicyDefinitions\%(TextTemplate.Filename).Generated.cs" />
+
+    </Target>-->
+    <!-- Preprocess Text Templates End -->
+
   <ItemGroup>
     <ProjectReference Include="..\GreatIdeas.Template.Domain\GreatIdeas.Template.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Authorizations\PolicyDefinitions\Permissions.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Permissions.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Authorizations\PolicyDefinitions\Permissions.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Permissions.tt</DependentUpon>
+    </Compile>
   </ItemGroup>    
     
 </Project>

@@ -1,8 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
 using GreatIdeas.Extensions;
-using GreatIdeas.Template.Domain.Entities;
-using GreatIdeas.Template.Domain.Enums;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace GreatIdeas.Template.Infrastructure.Data;

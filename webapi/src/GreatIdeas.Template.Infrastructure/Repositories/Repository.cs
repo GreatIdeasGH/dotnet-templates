@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using GreatIdeas.Template.Application.Abstractions.Services;
 
 namespace GreatIdeas.Template.Infrastructure.Repositories;
 

@@ -22,14 +22,14 @@ public static class SwaggerOpenApiServices
                     TermsOfService = new Uri($"{EmailDetails.Website}/terms"),
                     Contact = new OpenApiContact
                     {
-                        Name = "GGC Administrator",
-                        Email = "admin@ggcedutech.com"
+                        Name = "Administrator",
+                        Email = "admin@email.com",
                     },
                     License = new OpenApiLicense
                     {
-                        Name = "GGC License",
-                        Url = new Uri($"{EmailDetails.Website}/license")
-                    }
+                        Name = "License",
+                        Url = new Uri($"{EmailDetails.Website}/license"),
+                    },
                 }
             );
 
@@ -57,11 +57,11 @@ public static class SwaggerOpenApiServices
                             Reference = new OpenApiReference
                             {
                                 Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
+                                Id = "Bearer",
+                            },
                         },
                         Array.Empty<string>()
-                    }
+                    },
                 }
             );
 

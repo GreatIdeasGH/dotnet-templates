@@ -12,7 +12,7 @@ public static class ApiEndpointsRegistration
             .MapGet(
                 "/",
                 () =>
-                    "You're running Glory Global EduTech WebAPI. Please use /docs to see the API documentation."
+                    "You're running GreatIdeas.Template.WebAPI. Please use /docs to see Swagger API documentation."
             )
             .ExcludeFromDescription();
 

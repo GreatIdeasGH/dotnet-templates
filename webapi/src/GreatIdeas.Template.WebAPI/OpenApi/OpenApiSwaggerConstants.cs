@@ -2,7 +2,6 @@
 
 public static class OpenApiSwaggerConstants
 {
-    public const string ApiTitle = $"GGC EduTech Learning API";
-    public const string ApiDescription =
-        "Glory Global EduTech English Learning API documentation for developers";
+    public const string ApiTitle = $"GreatIdeas.Templates.WebAPI";
+    public const string ApiDescription = "GreatIdeas.Templates.WebAPI API documentation";
 }

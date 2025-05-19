@@ -1,6 +1,4 @@
-﻿using GreatIdeas.Template.Domain.Entities;
-
-namespace GreatIdeas.Template.Infrastructure.Data.Configurations;
+﻿namespace GreatIdeas.Template.Infrastructure.Data.Configurations;
 
 internal sealed class AuditTrailEntityConfiguration : IEntityTypeConfiguration<AuditTrail>
 {

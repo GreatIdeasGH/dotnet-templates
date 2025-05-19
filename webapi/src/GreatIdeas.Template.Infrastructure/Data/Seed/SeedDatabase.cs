@@ -1,9 +1,4 @@
-﻿using GreatIdeas.Template.Application.Authorizations.Identity;
-using GreatIdeas.Template.Application.Authorizations.PolicyDefinitions;
-using GreatIdeas.Template.Application.Common.Constants;
-using GreatIdeas.Template.Application.Common.Exceptions;
-using GreatIdeas.Template.Domain.Entities;
-using GreatIdeas.Template.Domain.Enums;
+﻿using GreatIdeas.Template.Application;
 using Microsoft.Extensions.Hosting;
 
 namespace GreatIdeas.Template.Infrastructure.Data.Seed;
@@ -33,46 +28,11 @@ public static class SeedDatabase
 
             #region Setup Permissions and Roles
 
-            // System Admin
-            var getSysAdmin = roleManager.FindByNameAsync(UserRoles.Admin).Result;
-            if (getSysAdmin == null)
-            {
-                var sysAdminRole = new IdentityRole { Name = UserRoles.Admin };
-
-                var result = roleManager.CreateAsync(sysAdminRole).Result;
-                if (result.Succeeded)
-                {
-                    // Add all Permissions
-                    var allClaims = EntityPermissions
-                        .GetAllPermissionValues()
-                        .Distinct()
-                        .Except([AppPermissions.Score.Manage])
-                        .ToArray();
-                    foreach (var claim in allClaims)
-                    {
-                        _ = roleManager
-                            .AddClaimAsync(sysAdminRole, new Claim("permission", claim!))
-                            .Result;
-                    }
-
-                    Log.Information("Created {Role}", sysAdminRole);
-                }
-                else
-                {
-                    var message = result.Errors.First().Description;
-                    OtelConstants.AddExceptionEvent(
-                        activity,
-                        new MigrationException(message),
-                        message
-                    );
-                }
-            }
-
             // Admin Role
             var getAdminRole = roleManager.FindByNameAsync(UserRoles.Admin).Result;
             if (getAdminRole == null)
             {
-                var adminRole = new IdentityRole { Name = UserRoles.Admin, };
+                var adminRole = new IdentityRole { Name = UserRoles.Admin };
 
                 var result = roleManager.CreateAsync(adminRole).Result;
                 if (result.Succeeded)
@@ -103,7 +63,7 @@ public static class SeedDatabase
             var getUserRole = roleManager.FindByNameAsync(UserRoles.User).Result;
             if (getUserRole == null)
             {
-                var userRole = new IdentityRole { Name = UserRoles.User, };
+                var userRole = new IdentityRole { Name = UserRoles.User };
 
                 var result = roleManager.CreateAsync(userRole).Result;
                 if (result.Succeeded)
@@ -154,60 +114,58 @@ public static class SeedDatabase
         // Start activity
         using var activity = ActivitySource.StartActivity(nameof(SeedUsers), ActivityKind.Consumer);
 
-            // Create Admin User    
-            if (!await context.Users.AnyAsync(x => x.UserName == "admin"))
+        // Create Admin User
+        if (!await context.Users.AnyAsync(x => x.UserName == "admin"))
+        {
+            var adminUser = new ApplicationUser
             {
-                var adminUser = new ApplicationUser
-                {
-                    UserName = "admin",
-                    Email = "admin@email.com",
-                    EmailConfirmed = true,
-                    PhoneNumber = "0123456789",
-                    PhoneNumberConfirmed = true,
-                    AccountType = AccountType.Admin.Name,
-                    IsActive = true
-                };
-                await userManager.CreateAsync(adminUser, "P@ssword1");
-                await userManager.AddClaimsAsync(
-                    adminUser,
-                    [
-                        new Claim(JwtClaimTypes.Id, $"{adminUser.Id}"),
-                        new Claim(UserClaims.Username, adminUser.UserName!),
-                        new Claim(JwtClaimTypes.Name, "Admin Name"),
-                        new Claim(UserClaims.AccountType, adminUser.AccountType),
-                        new Claim(JwtClaimTypes.Email, adminUser.Email),
-                    ]
-                );
-                await userManager.AddToRoleAsync(adminUser, UserRoles.Admin);
-            }
-            
-            // Add User
-            if (!await context.Users.AnyAsync(x => x.UserName == "user"))
-            {
-                var user = new ApplicationUser
-                {
-                    UserName = "user",
-                    Email = "user@email.com",
-                    EmailConfirmed = true,
-                    PhoneNumber = "0123456780",
-                    PhoneNumberConfirmed = true,
-                    AccountType = AccountType.Admin.Name,
-                    IsActive = true
-                };
-                await userManager.CreateAsync(user, "P@ssword1");
-                await userManager.AddClaimsAsync(
-                    user,
-                    [
-                        new Claim(JwtClaimTypes.Id, $"{user.Id}"),
-                        new Claim(UserClaims.Username, user.UserName!),
-                        new Claim(JwtClaimTypes.Name, "User Name"),
-                        new Claim(UserClaims.AccountType, user.AccountType),
-                        new Claim(JwtClaimTypes.Email, user.Email),
-                    ]
-                );
-                await userManager.AddToRoleAsync(user, UserRoles.Admin);
-            }
+                UserName = "admin",
+                Email = "admin@email.com",
+                EmailConfirmed = true,
+                PhoneNumber = "0123456789",
+                PhoneNumberConfirmed = true,
+                AccountType = AccountType.Admin.Name,
+                IsActive = true,
+            };
+            await userManager.CreateAsync(adminUser, "P@ssword1");
+            await userManager.AddClaimsAsync(
+                adminUser,
+                [
+                    new Claim(JwtClaimTypes.Id, $"{adminUser.Id}"),
+                    new Claim(UserClaims.Username, adminUser.UserName!),
+                    new Claim(JwtClaimTypes.Name, "Admin Name"),
+                    new Claim(UserClaims.AccountType, adminUser.AccountType),
+                    new Claim(JwtClaimTypes.Email, adminUser.Email),
+                ]
+            );
+            await userManager.AddToRoleAsync(adminUser, UserRoles.Admin);
+        }
 
-        
+        // Add User
+        if (!await context.Users.AnyAsync(x => x.UserName == "user"))
+        {
+            var user = new ApplicationUser
+            {
+                UserName = "user",
+                Email = "user@email.com",
+                EmailConfirmed = true,
+                PhoneNumber = "0123456780",
+                PhoneNumberConfirmed = true,
+                AccountType = AccountType.User.Name,
+                IsActive = true,
+            };
+            await userManager.CreateAsync(user, "P@ssword1");
+            await userManager.AddClaimsAsync(
+                user,
+                [
+                    new Claim(JwtClaimTypes.Id, $"{user.Id}"),
+                    new Claim(UserClaims.Username, user.UserName!),
+                    new Claim(JwtClaimTypes.Name, "User Name"),
+                    new Claim(UserClaims.AccountType, user.AccountType),
+                    new Claim(JwtClaimTypes.Email, user.Email),
+                ]
+            );
+            await userManager.AddToRoleAsync(user, UserRoles.User);
+        }
     }
 }

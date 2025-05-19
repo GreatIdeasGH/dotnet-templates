@@ -30,4 +30,9 @@
     <ProjectReference Include="..\GreatIdeas.Template.Application\GreatIdeas.Template.Application.csproj" />
     <ProjectReference Include="..\GreatIdeas.Template.Infrastructure\GreatIdeas.Template.Infrastructure.csproj" />
   </ItemGroup>
+
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
 </Project>
