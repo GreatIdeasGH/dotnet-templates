@@ -1,13 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\GreatIdeas.Template.Domain\GreatIdeas.Template.Domain.csproj" />
+        <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" />
+        <PackageReference Include="Azure.Identity" />
+        <PackageReference Include="Azure.Communication.Email" />
+        <PackageReference Include="Azure.Storage.Blobs" />
+        <PackageReference Include="ErrorOr" />
+        <PackageReference Include="CommunityToolkit.Diagnostics" />
+        <PackageReference Include="FluentValidation" />
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+        <PackageReference Include="GreatIdeas.Extensions" />
+        <PackageReference Include="GreatIdeas.PagedList" />
+        <PackageReference Include="MassTransit" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+        <PackageReference Include="Microsoft.AspNetCore.Authorization" />
+        <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
+        <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" />        
+        <PackageReference Include="Serilog.Extensions.Logging" />
+        <PackageReference Include="SixLabors.ImageSharp" />
     </ItemGroup>
-
+    
+  <ItemGroup>
+    <ProjectReference Include="..\GreatIdeas.Template.Domain\GreatIdeas.Template.Domain.csproj" />
+  </ItemGroup>    
+    
 </Project>

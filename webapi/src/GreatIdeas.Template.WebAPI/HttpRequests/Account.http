@@ -1,0 +1,28 @@
+@baseUrl = http://localhost:5237/api/accounts
+# @baseUrl = https://ggcwebapi-alpha.azurewebsites.net/api/account
+@userId = 5d97c661-af1f-4c70-b15f-4f95591dc060
+@bearerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1MGVkMmExOC02MWFhLTRlYTYtYmU0OS03ZDIyYmQ1NjQwNzMiLCJpZCI6IjQ1NWYyMThmLTlmYTgtNDQwNy04ODIwLWU1ZTU4MTBmMDc3MCIsInVzZXJuYW1lIjoia2F5IiwibmFtZSI6IlNhcnBvbmciLCJhY2NvdW50X3R5cGUiOiJTdGFmZiIsImVtYWlsIjoia2F5QGdnY2VkdXRlY2guY29tIiwiYXZhdGFyIjoiaHR0cHM6Ly9nZ2NkZXYuYmxvYi5jb3JlLndpbmRvd3MubmV0L2ltZ3MvYXZhdGFyNC5wbmciLCJzdGFmZl9pZCI6IjkxN2VhOGUzLTBhYTYtNDJlYi05MzZkLTExNDY1ZTE2MDUwZCIsInJvbGUiOiJBZG1pbiIsInBlcm1pc3Npb24iOlsiVmlldy5TdHVkZW50IiwiTWFuYWdlLlN0dWRlbnQiLCJEZWxldGUuU3R1ZGVudCIsIlZpZXcuU3RhZmYiLCJNYW5hZ2UuU3RhZmYiLCJEZWxldGUuU3RhZmYiLCJWaWV3LkxldmVsIiwiTWFuYWdlLkxldmVsIiwiRG93bmxvYWQuTGV2ZWwiLCJWaWV3LlVuaXQiLCJDcmVhdGUuVW5pdCIsIlVwZGF0ZS5Vbml0IiwiQXBwcm92ZS5Vbml0IiwiRGVsZXRlLlVuaXQiLCJWaWV3LlNjb3JlIiwiQ29nbml0aXZlLlRyYW5zbGF0ZSIsIkNvZ25pdGl2ZS5UVFMiLCJWaWV3LkF1ZGl0TG9ncyIsIk1hbmFnZS5BdWRpdExvZ3MiXSwibmJmIjoxNzM2MjU1Njc2LCJleHAiOjE3MzY1MTQ4NzYsImlhdCI6MTczNjI1NTY3NiwiaXNzIjoiR0dDRWR1VGVjaC5XZXBBcGkiLCJhdWQiOiJHR0NFZHVUZWNoLldlcEFwaSJ9.6h17FQqs-WXv7U8mK9YL5lTmcakVwg_GOkEU61d-Bwo
+
+# Update profile
+
+PATCH {{baseUrl}}/{{userId}}/profile
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "userId": "{{userId}}",
+  "username": "maale",
+  "email": "geraldmaale@gmail.com",
+  "phoneNumber": "17000000003"
+}
+
+### Get account
+GET {{baseUrl}}/{{userId}}
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+### Sync Database
+POST {{baseUrl}}/sync
+Accept: application/json

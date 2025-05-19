@@ -1,13 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <UseRidGraph>true</UseRidGraph>
+    <UserSecretsId>GreatIdeas.Template.WebAPI-DD75B7D5-5405-4724-90EF-A8AD035582F8</UserSecretsId>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
-  </ItemGroup>
+    <ItemGroup>        
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" />        
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+        <PackageReference Include="Microsoft.Identity.Web" />
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+        <PackageReference Include="Scalar.AspNetCore" />
+        <PackageReference Include="Swashbuckle.AspNetCore" />
+        <PackageReference Include="Swashbuckle.AspNetCore.ReDoc" />
+        <PackageReference Include="Serilog.Sinks.Console" />
+    </ItemGroup>
 
+
+  <ItemGroup>
+    <ProjectReference Include="..\GreatIdeas.Template.Application\GreatIdeas.Template.Application.csproj" />
+    <ProjectReference Include="..\GreatIdeas.Template.Infrastructure\GreatIdeas.Template.Infrastructure.csproj" />
+  </ItemGroup>
 </Project>

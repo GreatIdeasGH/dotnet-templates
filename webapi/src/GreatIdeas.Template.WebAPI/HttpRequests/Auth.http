@@ -1,0 +1,49 @@
+@baseUrl = https://localhost:7090/api/auth
+# @baseUrl = https://ggclearnapi-test.azurewebsites.net/api/auth
+
+# Register
+
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{ 
+  "name": "Daniel Roth",
+   "username": "danny",
+   "birthDate": "2020-11-01",
+  "gender": "male",
+  "grade": "Grade 3",
+  "guardianName": "Mr Roth",
+  "guardianRelationship": "Uncle",
+  "phoneNumber": "0241234569",
+  "province": "Sichuan",
+  "city": "Chengdu",
+  "password": "password"
+}
+
+### Login Student 
+
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "xiaolong",
+  "password": "password"
+}
+
+### Admin 
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "kay",
+  "password": "Passw0rd@Kay"
+}
+
+### Staff 
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "gerald",
+  "password": "Passw0rd@Gerald"
+}
