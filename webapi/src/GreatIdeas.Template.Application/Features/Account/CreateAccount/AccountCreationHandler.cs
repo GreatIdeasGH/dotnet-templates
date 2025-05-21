@@ -1,11 +1,11 @@
 ﻿using GreatIdeas.Template.Application.Abstractions.Repositories;
 
-namespace GreatIdeas.Template.Application.Features.Account.Register;
+namespace GreatIdeas.Template.Application.Features.Account.CreateAccount;
 
 public interface IAccountCreationHandler : IApplicationHandler
 {
     ValueTask<ErrorOr<ApiResponse>> RegisterAccountHandler(
-        SignUpRequest request,
+        CreateAccountRequest request,
         CancellationToken cancellationToken
     );
 }
@@ -19,7 +19,7 @@ internal sealed class AccountCreationHandler(
     private static readonly ActivitySource ActivitySource = new(nameof(AccountCreationHandler));
 
     public async ValueTask<ErrorOr<ApiResponse>> RegisterAccountHandler(
-        SignUpRequest request,
+        CreateAccountRequest request,
         CancellationToken cancellationToken
     )
     {
@@ -32,7 +32,7 @@ internal sealed class AccountCreationHandler(
 
         try
         {
-            var response = await userRepository.RegisterAccount(request, cancellationToken);
+            var response = await userRepository.CreateAccount(request, cancellationToken);
             if (response.IsError)
             {
                 return response.Errors;
@@ -44,12 +44,13 @@ internal sealed class AccountCreationHandler(
                 ActivityKind.Producer
             );
             await publishEndpoint.Publish(
-                new AccountRegisteredEvent(response.Value.PhoneNumber, response.Value.Message),
+                new AccountCreatedEvent(response.Value.Email),
                 cancellationToken
             );
 
-            OtelConstants.AddSuccessEvent(response.Value.Message, activity);
-            return new ApiResponse(Message: response.Value.Message);
+            var message = $"User account created for {request.Username}";
+            OtelConstants.AddSuccessEvent(message, activity);
+            return new ApiResponse(Message: message);
         }
         catch (Exception exception)
         {

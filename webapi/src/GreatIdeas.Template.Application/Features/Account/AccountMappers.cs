@@ -1,6 +1,5 @@
-﻿using GreatIdeas.Template.Application.Features.Account.Register;
+﻿using GreatIdeas.Template.Application.Features.Account.CreateAccount;
 using GreatIdeas.Template.Domain.Entities;
-using GreatIdeas.Template.Domain.Enums;
 
 namespace GreatIdeas.Template.Application.Features.Account;
 
@@ -15,23 +14,8 @@ public static class AccountMappers
             UserName = request.Username.Trim(),
             IsActive = true,
             EmailConfirmed = true,
-            AccountType = AccountType.FromName(request.AccountType, true).Name
+            PhoneNumber = request.PhoneNumber.Trim(),
+            PhoneNumberConfirmed = true,
         };
     }
-
-    public static ApplicationUser ToUser(this SignUpRequest request)
-    {
-        return new ApplicationUser
-        {
-            Id = Guid.NewGuid().ToString(),
-            Email = EmailDetails.GenerateTempEmail(request.PhoneNumber.Trim()),
-            UserName = request.Username?.Trim(),
-            IsActive = false,
-            EmailConfirmed = false,
-            AccountType = AccountType.User.Name,
-            PhoneNumber = request.PhoneNumber?.Trim(),
-            PhoneNumberConfirmed = false
-        };
-    }
-
 }

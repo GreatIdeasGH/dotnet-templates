@@ -1,5 +1,5 @@
 ﻿using GreatIdeas.Template.Application.Common.Options;
-using GreatIdeas.Template.Application.Features.Account.Register;
+using GreatIdeas.Template.Application.Features.Account.CreateAccount;
 using Microsoft.AspNetCore.Builder;
 using Serilog;
 
@@ -17,6 +17,8 @@ public static class MassTransitServiceCollection
             config.AddConsumers(typeof(AccountCreatedConsumer).Assembly);
 
             config.SetKebabCaseEndpointNameFormatter();
+
+            config.DisableUsageTelemetry();
 
             if (applicationSettings.MassTransitSettings.UseInMemoryBus)
             {

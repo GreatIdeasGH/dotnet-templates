@@ -1,18 +1,16 @@
 using GreatIdeas.Template.Application.Common;
 using LogDefinitions = GreatIdeas.Template.Application.Common.Extensions.LogDefinitions;
 
-namespace GreatIdeas.Template.Application.Features.Account.Register;
+namespace GreatIdeas.Template.Application.Features.Account.CreateAccount;
 
-public sealed record AccountCreatedEvent(string Username, string Email) : EventBase;
-
-public sealed record AccountRegisteredEvent(string PhoneNumber, string Message) : EventBase;
+public sealed record AccountCreatedEvent(string Email) : EventBase;
 
 public sealed class AccountCreatedConsumer(ILogger<AccountCreatedConsumer> logger)
-    : IConsumer<AccountRegisteredEvent>
+    : IConsumer<AccountCreatedEvent>
 {
     private static readonly ActivitySource ActivitySource = new(nameof(AccountCreatedConsumer));
 
-    public Task Consume(ConsumeContext<AccountRegisteredEvent> context)
+    public Task Consume(ConsumeContext<AccountCreatedEvent> context)
     {
         using var createUserActivity = ActivitySource.CreateActivity(
             nameof(AccountCreatedConsumer),
@@ -21,10 +19,12 @@ public sealed class AccountCreatedConsumer(ILogger<AccountCreatedConsumer> logge
         createUserActivity?.Start();
 
         // Schedule a message to be sent to the user's email address
-        LogDefinitions.LogUserInfo(logger, context.Message.PhoneNumber,
+        LogDefinitions.LogUserInfo(
+            logger,
+            context.Message.Email,
             "Consumed account created event. Sending message ..."
         );
-        
+
         return Task.CompletedTask;
     }
 }

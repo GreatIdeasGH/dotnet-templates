@@ -3,7 +3,7 @@ namespace GreatIdeas.Template.Domain.Entities;
 public sealed class ApplicationUser : IdentityUser
 {
     [PersonalData]
-    public string AccountType { get; set; } = default!;
+    public string FullName { get; set; } = null!;
 
     [PersonalData]
     public bool IsActive { get; set; }
@@ -18,31 +18,22 @@ public sealed class ApplicationUser : IdentityUser
 
     public void ActivateAccount() => IsActive = true;
 
-    public void Update(string phoneNumber, string username, bool isActive)
+    public void Update(string fullName, string phoneNumber)
     {
+        FullName = fullName.Trim();
         PhoneNumber = phoneNumber.Trim();
-        UserName = username.Trim().ToLowerInvariant();
-        NormalizedUserName = username.Trim().ToUpperInvariant();
-        IsActive = isActive;
     }
 
-    public void Update(string phoneNumber, string username, bool isActive, string email)
+    public void Update(string fullName, string phoneNumber, bool isActive, string email)
     {
+        FullName = fullName.Trim();
         PhoneNumber = phoneNumber.Trim();
-        UserName = username.Trim().ToLowerInvariant();
-        NormalizedUserName = username.Trim().ToUpperInvariant();
+        UserName = email.Trim().ToLowerInvariant();
+        NormalizedUserName = email.Trim().ToUpperInvariant();
         IsActive = isActive;
         Email = email.ToLowerInvariant();
         NormalizedEmail = email.Trim().ToUpperInvariant();
     }
-
-    public void ApproveAccount()
-    {
-        IsActive = true;
-        EmailConfirmed = true;
-        PhoneNumberConfirmed = true;
-    }
-
 } //end ApplicationUser
 
 //end namespace Entities

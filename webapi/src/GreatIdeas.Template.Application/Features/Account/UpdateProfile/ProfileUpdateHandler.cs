@@ -1,4 +1,5 @@
 ﻿using GreatIdeas.Template.Application.Abstractions.Repositories;
+using GreatIdeas.Template.Application.Features.Account.UpdateAccount;
 
 namespace GreatIdeas.Template.Application.Features.Account.UpdateProfile;
 

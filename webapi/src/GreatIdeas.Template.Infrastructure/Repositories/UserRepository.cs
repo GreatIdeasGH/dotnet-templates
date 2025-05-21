@@ -1,9 +1,10 @@
 ﻿using System.Text;
 using GreatIdeas.Template.Application.Features.Account;
+using GreatIdeas.Template.Application.Features.Account.CreateAccount;
 using GreatIdeas.Template.Application.Features.Account.GetAccount;
 using GreatIdeas.Template.Application.Features.Account.Login;
-using GreatIdeas.Template.Application.Features.Account.Register;
 using GreatIdeas.Template.Application.Features.Account.ResetPassword;
+using GreatIdeas.Template.Application.Features.Account.UpdateAccount;
 using GreatIdeas.Template.Application.Features.Account.UpdateProfile;
 using GreatIdeas.Template.Application.Responses.Authentication;
 using Error = ErrorOr.Error;
@@ -17,27 +18,25 @@ internal sealed class UserRepository(
     ILogger<UserRepository> logger
 ) : IUserRepository
 {
-    private static readonly ActivitySource _activitySource = new(nameof(UserRepository));
-    private readonly JwtService _jwtService = jwtService;
-    private readonly ApplicationDbContext _dbContext = dbContext;
-
+    private static readonly ActivitySource ActivitySource = new(nameof(UserRepository));
+   
     public async ValueTask<ApplicationUser?> FindById(string userId)
     {
-        using var activity = _activitySource.CreateActivity(nameof(FindById), ActivityKind.Server);
+        using var activity = ActivitySource.CreateActivity(nameof(FindById), ActivityKind.Server);
         activity?.Start();
 
-        return await _dbContext.Users.FindAsync(userId);
+        return await dbContext.Users.FindAsync(userId);
     }
 
     public async ValueTask<ErrorOr<UserAccountResponse>> GetUserAccountAsync(string userId)
     {
-        using var activity = _activitySource.CreateActivity(
+        using var activity = ActivitySource.CreateActivity(
             nameof(GetUserAccountAsync),
             ActivityKind.Server
         );
         activity?.Start();
 
-        var user = await _dbContext.Users.FindAsync(userId);
+        var user = await dbContext.Users.FindAsync(userId);
         if (user is null)
         {
             return DomainUserErrors.UserNotFound;
@@ -56,25 +55,17 @@ internal sealed class UserRepository(
         return result;
     }
 
-    public async ValueTask<IList<Claim>?> GetClaims(ApplicationUser user)
-    {
-        using var activity = _activitySource.CreateActivity(nameof(GetClaims), ActivityKind.Server);
-        activity?.Start();
-
-        return await userManager.GetClaimsAsync(user);
-    }
-
     public async Task<ErrorOr<LoginResponse>> Login(
         LoginRequest request,
         CancellationToken cancellationToken
     )
     {
         // Start activity
-        using var activity = _activitySource.CreateActivity("GetUser", ActivityKind.Server);
+        using var activity = ActivitySource.CreateActivity("GetUser", ActivityKind.Server);
         activity?.Start();
         try
         {
-            var currentUser = await _dbContext
+            var currentUser = await dbContext
                 .Users.Where(x => x.UserName!.ToLower() == request.Username.ToLower())
                 .FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
@@ -112,7 +103,7 @@ internal sealed class UserRepository(
             activity?.Stop();
 
             // Check if password is correct
-            using var passwordActivity = _activitySource.CreateActivity(
+            using var passwordActivity = ActivitySource.CreateActivity(
                 "IsPasswordValid",
                 ActivityKind.Server
             );
@@ -164,14 +155,14 @@ internal sealed class UserRepository(
     )
     {
         // Start activity
-        using var activity = _activitySource.CreateActivity(
+        using var activity = ActivitySource.CreateActivity(
             nameof(CreateAccount),
             ActivityKind.Server
         );
         activity?.Start();
 
         // start transaction
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(
             cancellationToken
         );
 
@@ -179,13 +170,13 @@ internal sealed class UserRepository(
         {
             // Create account
             // activity
-            using var createUserActivity = _activitySource.CreateActivity(
+            using var createUserActivity = ActivitySource.CreateActivity(
                 "CreateUser",
                 ActivityKind.Server
             );
 
             // Create user
-            var userExists = await _dbContext
+            var userExists = await dbContext
                 .Users.AsNoTracking()
                 .AnyAsync(x => x.Email == request.Email, cancellationToken);
             if (userExists)
@@ -208,7 +199,7 @@ internal sealed class UserRepository(
             if (result.Succeeded)
             {
                 // Add claims
-                using var addClaimsActivity = _activitySource.CreateActivity(
+                using var addClaimsActivity = ActivitySource.CreateActivity(
                     "AddRoleClaims",
                     ActivityKind.Server
                 );
@@ -218,15 +209,11 @@ internal sealed class UserRepository(
                     [
                         new Claim(JwtClaimTypes.Id, $"{userEntity.Id}"),
                         new Claim(UserClaims.Username, userEntity.UserName!),
-                        new Claim(UserClaims.AccountType, userEntity.AccountType!),
                     ]
                 );
 
                 // Add user role
-                _ = await userManager.AddToRoleAsync(
-                    userEntity,
-                    AccountType.FromName(request.AccountType, true).Name
-                );
+                _ = await userManager.AddToRoleAsync(userEntity, request.Role);
 
                 // createsavepoint: add claims
                 await transaction.CreateSavepointAsync(
@@ -247,7 +234,6 @@ internal sealed class UserRepository(
                 await transaction.CommitAsync(cancellationToken);
 
                 return new AccountCreatedResponse(
-                    Username: userEntity.UserName!,
                     Email: request.Email!,
                     VerificationCode: code
                 );
@@ -273,164 +259,50 @@ internal sealed class UserRepository(
         }
     }
 
-    public async ValueTask<ErrorOr<SignUpResponse>> RegisterAccount(
-        SignUpRequest request,
-        CancellationToken cancellationToken
-    )
-    {
-        // Start activity
-        using var activity = _activitySource.CreateActivity(
-            nameof(CreateAccount),
-            ActivityKind.Server
-        );
-        activity?.Start();
-
-        // start transaction
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(
-            cancellationToken
-        );
-
-        try
-        {
-            // Create account
-            // activity
-            using var createUserActivity = _activitySource.CreateActivity(
-                "CreateUser",
-                ActivityKind.Server
-            );
-
-            // Create user
-            var userExists = await _dbContext
-                .Users.AsNoTracking()
-                .AnyAsync(x => x.PhoneNumber == request.PhoneNumber.Trim(), cancellationToken);
-            if (userExists)
-            {
-                var userExistsMessage = DomainUserErrors.PhoneNumberExists(request.PhoneNumber!);
-                OtelUserConstants.AddErrorEvent(request.PhoneNumber, activity, userExistsMessage);
-                return userExistsMessage;
-            }
-
-            // Create user
-            var userEntity = request.ToUser();
-            var result = await userManager.CreateAsync(userEntity, request.Password);
-
-            // create savepoint: create user
-            await transaction.CreateSavepointAsync(
-                "create user",
-                cancellationToken: cancellationToken
-            );
-
-            if (result.Succeeded)
-            {
-                // Add claims
-                using var addClaimsActivity = _activitySource.CreateActivity(
-                    "AddRoleClaims",
-                    ActivityKind.Server
-                );
-
-                _ = await userManager.AddClaimsAsync(
-                    userEntity,
-                    [
-                        new(JwtClaimTypes.Id, $"{userEntity.Id}"),
-                        new(JwtClaimTypes.Name, request.Name.Trim()),
-                        new(UserClaims.Username, userEntity.UserName!),
-                        new(UserClaims.AccountType, userEntity.AccountType!),
-                    ]
-                );
-
-                // Add user role
-                _ = await userManager.AddToRoleAsync(userEntity, AccountType.User.Name);
-
-                // Commit transaction
-                await transaction.CommitAsync(cancellationToken);
-
-                logger.LogUserInfo(
-                    userEntity.PhoneNumber!,
-                    "User registered an account successfully."
-                );
-
-                return new SignUpResponse(
-                    Name: request.GuardianName,
-                    PhoneNumber: request.PhoneNumber,
-                    Message: "Account registration has been submitted. You'll receive a message shortly."
-                );
-            }
-
-            var error = DomainUserErrors.CreationFailed(
-                result.Errors.FirstOrDefault()!.Description
-            );
-            logger.LogToError("username", error.Description);
-            OtelUserConstants.AddErrorEvent(request.PhoneNumber, activity, error);
-            return error;
-        }
-        catch (Exception exception)
-        {
-            // Rollback transaction
-            await transaction.RollbackAsync(cancellationToken: cancellationToken);
-            return exception.LogCriticalUser(
-                logger,
-                activity: activity,
-                user: request.PhoneNumber!,
-                message: "Account registration failed"
-            );
-        }
-    }
-
-    public ValueTask<ErrorOr<string>> UpdateProfileAsync(
-        string userId,
-        ProfileUpdateRequest request,
-        CancellationToken cancellationToken
-    )
-    {
-        throw new NotImplementedException();
-    }
-
-    // Update user profile
-    public async ValueTask<ErrorOr<string>> UpdateStudentProfile(
+    public async ValueTask<ErrorOr<string>> UpdateProfileAsync(
         string userId,
         ProfileUpdateRequest request,
         CancellationToken cancellationToken
     )
     {
         // Start activity
-        using var activity = _activitySource.CreateActivity(
-            nameof(UpdateStudentProfile),
+        using var activity = ActivitySource.CreateActivity(
+            nameof(UpdateProfileAsync),
             ActivityKind.Server
         );
         activity?.Start();
 
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
-        Error error;
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         try
         {
-            var query = _dbContext.Users.Where(x => x.Id == userId);
-            var existingUser = await query.FirstOrDefaultAsync(cancellationToken);
+            var existingUser = await dbContext
+                .Users.Where(x => x.Id == userId)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (existingUser is null)
-            {
-                error = DomainUserErrors.UserNotFound;
-                logger.LogUserError(userId, error.Description);
-            }
-
-            existingUser!.Update(request.PhoneNumber, request.Username, request.IsActive);
-            _dbContext.Entry(existingUser).State = EntityState.Modified;
-            var result = await _dbContext.SaveChangesAsync(cancellationToken);
+            existingUser!.Update(request.FullName, request.PhoneNumber);
+            dbContext.Entry(existingUser).State = EntityState.Modified;
+            var result = await dbContext.SaveChangesAsync(cancellationToken);
 
             if (result > 0)
             {
                 var claims = await userManager.GetClaimsAsync(existingUser!);
 
-                // Update claims for username
-                var claimsToDelete = claims.Where(x => x.Type == UserClaims.Username).ToList();
+                // Update claims
+                var claimsToDelete = claims
+                    .Where(x => x.Type is JwtClaimTypes.Name or JwtClaimTypes.PhoneNumber)
+                    .ToList();
                 if (claimsToDelete.Count > 0)
                 {
                     var res = await userManager.RemoveClaimsAsync(existingUser!, claimsToDelete);
                     if (res.Succeeded)
                     {
                         // Update claims
-                        var usernameClaim = new Claim(UserClaims.Username, request.Username.Trim());
-                        await userManager.AddClaimsAsync(existingUser!, [usernameClaim]);
+                        var nameClaim = new Claim(JwtClaimTypes.Name, request.FullName.Trim());
+                        var phoneNumberClaim = new Claim(JwtClaimTypes.PhoneNumber, request.PhoneNumber.Trim());
+                        await userManager.AddClaimsAsync(
+                            existingUser!,[nameClaim, phoneNumberClaim]
+                        );
                     }
                 }
 
@@ -442,9 +314,8 @@ internal sealed class UserRepository(
                 return message;
             }
 
-            error = DomainUserErrors.UpdateFailed("Could not update user profile");
+            var error = DomainUserErrors.UpdateFailed("Could not update user profile");
             logger.LogUserError(userId, error.Description);
-
             return error;
         }
         catch (Exception exception)
@@ -459,137 +330,72 @@ internal sealed class UserRepository(
         }
     }
 
-    // Update user profile
-    public async ValueTask<ErrorOr<string>> UpdateStaffAccountAsync(
+    // Update account
+    public async ValueTask<ErrorOr<string>> UpdateAccountAsync(
         string userId,
         AccountUpdateRequest request,
         CancellationToken cancellationToken
     )
     {
         // Start activity
-        using var activity = _activitySource.CreateActivity(
-            nameof(UpdateStaffAccountAsync),
+        using var activity = ActivitySource.CreateActivity(
+            nameof(UpdateAccountAsync),
             ActivityKind.Server
         );
         activity?.Start();
 
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
-
-        try
-        {
-            var existingUser = await _dbContext
-                .Users.Where(x => x.Id == userId)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            existingUser!.Update(
-                request.PhoneNumber,
-                request.Username,
-                request.IsActive,
-                request.Email
-            );
-            _dbContext.Entry(existingUser).State = EntityState.Modified;
-            var result = await _dbContext.SaveChangesAsync(cancellationToken);
-
-            if (result > 0)
-            {
-                var claims = await userManager.GetClaimsAsync(existingUser!);
-
-                // Update claims for username
-                var claimsToDelete = claims
-                    .Where(x => x.Type == UserClaims.Username || x.Type == JwtClaimTypes.Email)
-                    .ToList();
-                if (claimsToDelete.Count > 0)
-                {
-                    var res = await userManager.RemoveClaimsAsync(existingUser!, claimsToDelete);
-                    if (res.Succeeded)
-                    {
-                        // Update claims
-                        var usernameClaim = new Claim(UserClaims.Username, request.Username.Trim());
-                        var emailClaim = new Claim(JwtClaimTypes.Email, request.Email.Trim());
-                        await userManager.AddClaimsAsync(
-                            existingUser!,
-                            [usernameClaim, emailClaim]
-                        );
-                    }
-                }
-
-                // Update role
-                var roles = await userManager.GetRolesAsync(existingUser!);
-                if (roles.Any())
-                {
-                    await userManager.RemoveFromRolesAsync(existingUser!, roles);
-                    await userManager.AddToRoleAsync(existingUser!, request.Role);
-                }
-
-                var message = "Staff account updated successfully.";
-                logger.LogUserInfo(userId, message);
-                OtelUserConstants.AddInfoEvent(userId, message, activity);
-
-                await transaction.CommitAsync();
-                return message;
-            }
-
-            var error = DomainUserErrors.UpdateFailed("Could not update staff account");
-            logger.LogUserError(userId, error.Description);
-            return error;
-        }
-        catch (Exception exception)
-        {
-            await transaction.RollbackAsync();
-            return exception.LogCriticalUser(
-                logger,
-                activity: activity,
-                user: userId,
-                message: "User profile update failed"
-            );
-        }
-    }
-
-    // Update student claims profile
-    public async ValueTask<bool> UpdateStaffClaimsAsync(
-        string userId,
-        string fullName,
-        CancellationToken cancellationToken
-    )
-    {
-        // Start activity
-        using var activity = _activitySource.CreateActivity(
-            nameof(UpdateStaffClaimsAsync),
-            ActivityKind.Server
-        );
-        activity?.Start();
-
-        var user = await _dbContext
+        var existingUser = await dbContext
             .Users.Where(x => x.Id == userId)
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (user is not null)
+        if (existingUser is not null)
         {
-            var claims = await userManager.GetClaimsAsync(user!);
+            var claims = await userManager.GetClaimsAsync(existingUser);
 
-            // Update claims for username
-            var claimsToDelete = claims.Where(x => x.Type == JwtClaimTypes.Name).ToList();
+            // Update claims
+            var claimsToDelete = claims
+                .Where(x => x.Type is JwtClaimTypes.Name or JwtClaimTypes.PhoneNumber or JwtClaimTypes.Email or UserClaims.Username)
+                .ToList();
             if (claimsToDelete.Count > 0)
             {
-                var res = await userManager.RemoveClaimsAsync(user!, claimsToDelete);
+                var res = await userManager.RemoveClaimsAsync(existingUser!, claimsToDelete);
                 if (res.Succeeded)
                 {
                     // Update claims
-                    var nameClaim = new Claim(JwtClaimTypes.Name, fullName.Trim());
-                    await userManager.AddClaimAsync(user!, nameClaim);
+                    var nameClaim = new Claim(JwtClaimTypes.Name, request.FullName.Trim());
+                    var phoneNumberClaim = new Claim(JwtClaimTypes.PhoneNumber, request.PhoneNumber.Trim());
+                    var emailClaim = new Claim(JwtClaimTypes.Email, request.Email.Trim());
+                    var usernameClaim = new Claim(UserClaims.Username, request.Username.Trim());
+                    await userManager.AddClaimsAsync(
+                        existingUser,[nameClaim, phoneNumberClaim, emailClaim, usernameClaim]
+                    );
                 }
             }
+            
+            // Update role
+                var userRoles = await userManager.GetRolesAsync(existingUser);
+                if (userRoles.Any())
+                {
+                    var existingRole = userRoles.FirstOrDefault(x => x == request.Role)!;
 
-            var message = "Updated name claim successfully.";
+                    // if existing role and request role are different, update role
+                    if (userRoles.Count > 0 && string.IsNullOrEmpty(existingRole))
+                    {
+                        await userManager.RemoveFromRoleAsync(existingUser, existingRole);
+                        await userManager.AddToRoleAsync(existingUser!, request.Role);
+                    }
+                }
+
+                var message = "Updated account successfully.";
             logger.LogUserInfo(userId, message);
             OtelUserConstants.AddInfoEvent(userId, message, activity);
-            return true;
+            return message;
         }
 
-        var error = DomainUserErrors.UpdateFailed("Could not update user profile");
+        var error = DomainUserErrors.UpdateFailed("Could not update account");
         logger.LogUserError(userId, error.Description);
         OtelUserConstants.AddErrorEvent(userId, activity, error);
-        return false;
+        return string.Empty;
     }
 
     public async ValueTask<ErrorOr<string>> ResetPassword(
@@ -598,7 +404,7 @@ internal sealed class UserRepository(
     )
     {
         // Start activity
-        using var activity = _activitySource.CreateActivity(
+        using var activity = ActivitySource.CreateActivity(
             nameof(ResetPassword),
             ActivityKind.Server
         );
@@ -639,82 +445,16 @@ internal sealed class UserRepository(
         }
     }
 
-    public async ValueTask AddClaim(string userId, string claimType, string claimValue)
+    public async ValueTask<bool> HasAdminRole(string userId)
     {
-        using var activity = _activitySource.CreateActivity(nameof(AddClaim), ActivityKind.Server);
-        activity?.Start();
-
-        var user = await userManager.FindByIdAsync(userId);
-        await userManager.AddClaimAsync(user!, new(claimType, claimValue));
-    }
-
-    public async ValueTask AddClaim(ApplicationUser user, string claimType, string claimValue)
-    {
-        using var activity = _activitySource.CreateActivity(nameof(AddClaim), ActivityKind.Server);
-        activity?.Start();
-
-        await userManager.AddClaimAsync(user, new(claimType, claimValue));
-    }
-
-    public async ValueTask RemoveClaim(ApplicationUser user, string claimType, string claimValue)
-    {
-        using var activity = _activitySource.CreateActivity(nameof(AddClaim), ActivityKind.Server);
-        activity?.Start();
-
-        await userManager.RemoveClaimAsync(user, new(claimType, claimValue));
-    }
-
-    // Update user claims
-    public async ValueTask<bool> UpdateClaim(string userId, string claimType, string claimValue)
-    {
-        using var activity = _activitySource.CreateActivity(
-            nameof(UpdateClaim),
-            ActivityKind.Server
-        );
-        activity?.Start();
-
-        var user = await _dbContext.Users.Where(x => x.Id == userId).FirstOrDefaultAsync();
-
-        if (user is not null)
-        {
-            var claims = await userManager.GetClaimsAsync(user!);
-
-            // Update claims for username
-            var claimsToDelete = claims.Where(x => x.Type == claimType).ToList();
-            if (claimsToDelete.Count > 0)
-            {
-                var res = await userManager.RemoveClaimsAsync(user!, claimsToDelete);
-                if (res.Succeeded)
-                {
-                    // Update claims
-                    var newClaim = new Claim(claimType, claimValue.Trim());
-                    await userManager.AddClaimAsync(user!, newClaim);
-                }
-            }
-
-            var message = $"Updated {claimValue} claim successfully.";
-            logger.LogUserInfo(userId, message);
-            OtelUserConstants.AddInfoEvent(userId, message, activity);
-            return true;
-        }
-
-        var error = DomainUserErrors.UpdateFailed("Could not update claim");
-        logger.LogUserError(userId, error.Description);
-        OtelUserConstants.AddErrorEvent(userId, activity, error);
-        return false;
-    }
-
-    public async ValueTask<int> HasAdminRole(string userId)
-    {
-        using var activity = _activitySource.CreateActivity(
+        using var activity = ActivitySource.CreateActivity(
             nameof(HasAdminRole),
             ActivityKind.Server
         );
         activity?.Start();
 
         var users = await userManager.GetUsersInRoleAsync(UserRoles.Admin);
-        users = users.Where(x => x.Id == userId).ToList();
-        return users.Count;
+        return users.Any(x => x.Id == userId);
     }
 
     private async Task<ErrorOr<RefreshTokenResponse>> ValidateTokenAndPatchUser(
@@ -722,26 +462,26 @@ internal sealed class UserRepository(
         CancellationToken cancellationToken
     )
     {
-        using var tokenActivity = _activitySource.CreateActivity(
+        using var tokenActivity = ActivitySource.CreateActivity(
             "ValidateRefreshToken",
             ActivityKind.Server
         );
         tokenActivity?.Start();
 
         // Validate refresh token
-        var tokenResponse = await _jwtService.ValidateRefreshToken(currentUser);
+        var tokenResponse = await jwtService.ValidateRefreshToken(currentUser);
 
         // Update refresh token
         currentUser.RefreshToken = tokenResponse.RefreshToken;
         currentUser.RefreshTokenExpiryTime = tokenResponse.Expires;
         tokenActivity?.Stop();
 
-        using var patchUserActivity = _activitySource.CreateActivity(
+        using var patchUserActivity = ActivitySource.CreateActivity(
             "PatchLoginUser",
             ActivityKind.Server
         );
         patchUserActivity?.Start();
-        var result = await _dbContext
+        var result = await dbContext
             .Users.Where(x => x.Id == currentUser.Id)
             .TagWith("PatchLoginUser")
             .ExecuteUpdateAsync(
@@ -761,4 +501,5 @@ internal sealed class UserRepository(
 
         return tokenResponse;
     }
+    
 }

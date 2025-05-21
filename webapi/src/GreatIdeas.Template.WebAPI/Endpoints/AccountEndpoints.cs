@@ -1,6 +1,9 @@
 using FluentValidation;
+using GreatIdeas.Template.Application.Features.Account.CreateAccount;
 using GreatIdeas.Template.Application.Features.Account.GetAccount;
+using GreatIdeas.Template.Application.Features.Account.Login;
 using GreatIdeas.Template.Application.Features.Account.ResetPassword;
+using GreatIdeas.Template.Application.Features.Account.UpdateAccount;
 using GreatIdeas.Template.Application.Features.Account.UpdateProfile;
 using GreatIdeas.Template.WebAPI.Extensions;
 
@@ -24,6 +27,16 @@ public sealed class AccountEndpoints : IEndpoint
             .Produces<UserAccountResponse>()
             .ProducesCommonForbiddenErrors();
 
+        // POST: api/accounts
+        group
+            .MapPost("", CreateAccount)
+            .WithName("CreateAccount")
+            .WithDescription("Create a new user account")
+            .WithSummary("Create a new user account")
+            .Produces<AccountCreatedResponse>()
+            .ProducesCommonErrors()
+            .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict);
+
         // PATCH: api/accounts/{userId}/profile
         group
             .MapPatch("profile", UpdateProfile)
@@ -34,9 +47,9 @@ public sealed class AccountEndpoints : IEndpoint
             .ProducesCommonForbiddenErrors()
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict);
 
-        // PATCH: api/accounts/{userId}/staff"
+        // UPDATE: api/accounts/{userId}"
         group
-            .MapPatch("staff", UpdateStaffAccount)
+            .MapPut("", UpdateAccount)
             .WithName("UpdateStaffAccount")
             .WithDescription("Update staff user account")
             .WithSummary("Update staff user account")
@@ -46,15 +59,26 @@ public sealed class AccountEndpoints : IEndpoint
 
         // PUT: api/accounts/{userId}/resetPassword
         group
-            .MapPut("resetPassword", ResetPassword)
+            .MapPatch("resetPassword", ResetPassword)
             .WithName("ResetPassword")
             .WithDescription("Reset user password")
             .WithSummary("Reset user password")
             .Produces<ApiResponse>()
             .ProducesCommonForbiddenErrors();
+
+        // POST: api/account/login
+        group
+            .MapPost("login", LoginAccount)
+            .WithName("Login")
+            .WithDescription("Login to the application with valid credentials")
+            .WithSummary("Login to the application")
+            .Produces<LoginResponse>()
+            .Produces<ApiValidationResponse>(StatusCodes.Status400BadRequest)
+            .ProducesCommonErrors();
     }
 
-    // PATCH: api/account/profile
+
+    // GET: api/account/{userId}
     public static async Task<IResult> GetAccount(
         string userId,
         IGetUserAccountHandler handler,
@@ -62,6 +86,25 @@ public sealed class AccountEndpoints : IEndpoint
     )
     {
         var response = await handler.GetUserAccount(userId, token);
+        return response.Match(
+            data => TypedResults.Ok(data),
+            errors => Results.Extensions.Problem(errors)
+        );
+    }
+    
+    // POST: api/account
+    public static async Task<IResult> CreateAccount(
+        [FromBody] CreateAccountRequest model,
+        IValidator<CreateAccountRequest> validator,
+        IAccountCreationHandler handler,
+        CancellationToken token
+    )
+    {
+        var validated = await validator.ValidateAsync(model, token);
+        if (!validated.IsValid)
+            return TypedResults.ValidationProblem(validated.ToDictionary());
+
+        var response = await handler.RegisterAccountHandler(model, token);
         return response.Match(
             data => TypedResults.Ok(data),
             errors => Results.Extensions.Problem(errors)
@@ -88,12 +131,12 @@ public sealed class AccountEndpoints : IEndpoint
         );
     }
 
-    // PATCH: api/account/profile
-    public static async Task<IResult> UpdateStaffAccount(
+    // PUT: api/account
+    public static async Task<IResult> UpdateAccount(
         string userId,
         [FromBody] AccountUpdateRequest model,
         IValidator<AccountUpdateRequest> validator,
-        IStaffAccountUpdateHandler handler,
+        IUpdateAccountHandler handler,
         CancellationToken token
     )
     {
@@ -108,7 +151,7 @@ public sealed class AccountEndpoints : IEndpoint
         );
     }
 
-    // PUT: api/account/resetPassword
+    // PATCH: api/account/resetPassword
     public static async Task<IResult> ResetPassword(
         string userId,
         [FromBody] PasswordResetRequest model,
@@ -121,6 +164,25 @@ public sealed class AccountEndpoints : IEndpoint
             return TypedResults.ValidationProblem(validated.ToDictionary());
 
         var response = await handler.UpdateProfile(userId, model);
+        return response.Match(
+            data => TypedResults.Ok(data),
+            errors => Results.Extensions.Problem(errors)
+        );
+    }
+    
+    // POST: api/account/login
+    public static async Task<IResult> LoginAccount(
+        LoginRequest model,
+        IValidator<LoginRequest> validator,
+        IAccountLoginHandler handler,
+        CancellationToken token
+    )
+    {
+        var validated = await validator.ValidateAsync(model, token);
+        if (!validated.IsValid)
+            return TypedResults.ValidationProblem(validated.ToDictionary());
+
+        var response = await handler.LoginAccountHandler(model, token);
         return response.Match(
             data => TypedResults.Ok(data),
             errors => Results.Extensions.Problem(errors)

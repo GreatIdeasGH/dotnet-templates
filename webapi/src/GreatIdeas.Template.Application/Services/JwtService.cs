@@ -43,64 +43,7 @@ public sealed class JwtService
         InitializeJwtOptions();
     }
 
-    public RefreshTokenRequest GenerateRefreshToken()
-    {
-        var refreshToken = new RefreshTokenRequest();
-        var randomNumber = new byte[32];
-        using (var rng = RandomNumberGenerator.Create())
-        {
-            rng.GetBytes(randomNumber);
-            refreshToken.Token = Convert.ToBase64String(randomNumber);
-        }
-
-        refreshToken.Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(_refreshTokenExpiryInDays));
-
-        return refreshToken;
-    }
-
-    public ClaimsPrincipal GetPrincipalFromExpiredToken(string accessToken)
-    {
-        try
-        {
-            var tokenValidationParameters = TokenValidationParameters();
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var principal = tokenHandler.ValidateToken(
-                accessToken,
-                tokenValidationParameters,
-                out var securityToken
-            );
-            var jwtSecurityToken = securityToken as JwtSecurityToken;
-            if (
-                jwtSecurityToken == null
-                || !jwtSecurityToken.Header.Alg.Equals(
-                    SecurityAlgorithms.HmacSha256,
-                    StringComparison.InvariantCultureIgnoreCase
-                )
-            )
-            {
-                _logger.LogError("Invalid token");
-                throw new SecurityTokenException("Invalid token");
-            }
-
-            return principal;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Could not process the request");
-            throw new SecurityTokenException("Invalid token", e);
-        }
-    }
-
-    public async Task<string> GenerateAccessToken(ApplicationUser user)
-    {
-        var claims = await GetClaims(user);
-        var tokenDescriptor = SecurityTokenDescriptor(claims);
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var securityToken = tokenHandler.CreateToken(tokenDescriptor);
-        var jwt = tokenHandler.WriteToken(securityToken);
-        return jwt;
-    }
+    
 
     public async Task<RefreshTokenResponse> ValidateRefreshToken(ApplicationUser user)
     {
@@ -146,6 +89,31 @@ public sealed class JwtService
         _expiryTimeInHours = _applicationSettings.JwtSettings.ExpiryTimeInHours;
         _refreshTokenExpiryInDays = _applicationSettings.JwtSettings.RefreshTokenExpiryInDays;
     }
+    
+    private RefreshTokenRequest GenerateRefreshToken()
+    {
+        var refreshToken = new RefreshTokenRequest();
+        var randomNumber = new byte[32];
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(randomNumber);
+            refreshToken.Token = Convert.ToBase64String(randomNumber);
+        }
+
+        refreshToken.Expires = DateTime.UtcNow.AddDays(Convert.ToDouble(_refreshTokenExpiryInDays));
+
+        return refreshToken;
+    }
+
+    private async Task<string> GenerateAccessToken(ApplicationUser user)
+    {
+        var claims = await GetClaims(user);
+        var tokenDescriptor = SecurityTokenDescriptor(claims);
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+        var jwt = tokenHandler.WriteToken(securityToken);
+        return jwt;
+    }
 
     private async Task<List<Claim>> GetClaims(ApplicationUser user)
     {
@@ -176,24 +144,6 @@ public sealed class JwtService
             }
         }
         return claims;
-    }
-
-    private TokenValidationParameters TokenValidationParameters()
-    {
-        var tokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = true,
-            ValidateIssuer = true,
-            ValidateIssuerSigningKey = true,
-            RequireExpirationTime = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key: Encoding.UTF8.GetBytes(_secretKey)),
-            ValidateLifetime = false,
-            ValidIssuer = _validIssuer,
-            ValidAudience = _validAudience,
-            RequireSignedTokens = true,
-            ClockSkew = TimeSpan.FromSeconds(5),
-        };
-        return tokenValidationParameters;
     }
 
     private SecurityTokenDescriptor SecurityTokenDescriptor(List<Claim> claims)

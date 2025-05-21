@@ -6,11 +6,9 @@ public sealed class ProfileUpdateValidator : AbstractValidator<ProfileUpdateRequ
 {
     public ProfileUpdateValidator()
     {
-        RuleFor(x => x.Username)
+        RuleFor(x => x.FullName)
             .NotEmpty()
-            .WithMessage(errorMessage: "Username is required")
-            .Matches(RegexValidator.UsernameRegex())
-            .WithMessage("Username should not contain spaces nor specials characters")
+            .WithMessage(errorMessage: "Full name is required")
             .MinimumLength(3);
 
         RuleFor(x => x.PhoneNumber)
@@ -18,34 +16,7 @@ public sealed class ProfileUpdateValidator : AbstractValidator<ProfileUpdateRequ
             .WithMessage(errorMessage: "Phone number is required")
             .Matches(RegexValidator.PhoneNumberRegex())
             .WithMessage("Phone number is not valid")
-            .Length(11)
-            .WithMessage("Phone number should be 11 digits");
-    }
-}
-
-public sealed class StaffAccountUpdateValidator : AbstractValidator<AccountUpdateRequest>
-{
-    public StaffAccountUpdateValidator()
-    {
-        RuleFor(x => x.Email)
-            .NotEmpty()
-            .WithMessage(errorMessage: "Email address is required")
-            .EmailAddress()
-            .WithMessage("Email address is not valid");
-
-        RuleFor(x => x.Username)
-            .NotEmpty()
-            .WithMessage(errorMessage: "Username is required")
-            .Matches(RegexValidator.UsernameRegex())
-            .WithMessage("Username should not contain spaces nor specials characters")
-            .MinimumLength(3);
-
-        RuleFor(x => x.PhoneNumber)
-            .NotEmpty()
-            .WithMessage(errorMessage: "Phone number is required")
-            .Matches(RegexValidator.PhoneNumberRegex())
-            .WithMessage("Phone number is not valid")
-            .Length(11)
-            .WithMessage("Phone number should be 11 digits");
+            .Length(10)
+            .WithMessage("Phone number should be 10 digits");
     }
 }

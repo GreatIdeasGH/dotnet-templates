@@ -11,20 +11,15 @@ public static partial class RegexValidator
     [GeneratedRegex(@"^\S*$")]
     public static partial Regex NoSpacesRegex();
 
-    // Phone number regex validator for 10 digits or max 15 digits
-    [GeneratedRegex(@"^\d{10,15}$")]
+    // Phone number regex validator for 10 digits
+    [GeneratedRegex(@"^\d{10}$")]
     public static partial Regex PhoneNumberRegex();
 
     // Username regex validator for no spaces, no special characters
     [GeneratedRegex(@"^[a-zA-Z0-9]*$")]
     public static partial Regex UsernameRegex();
 
-    [GeneratedRegex(@"^[a-zA-Z0-9\-_]+$")]
-    public static partial Regex NumberFormatRegex();
-
-    [GeneratedRegex(@"^[0-9][0-9a-z]{0,2}[A-Z]?$")]
-    public static partial Regex PageNumberRegex();
-
+    // String must be uppercase
     [GeneratedRegex("([A-Z])", RegexOptions.Compiled)]
     public static partial Regex UpperCase();
 }

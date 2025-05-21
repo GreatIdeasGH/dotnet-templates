@@ -1,8 +1,9 @@
 ﻿using GreatIdeas.Template.Application.Abstractions.Repositories;
+using GreatIdeas.Template.Application.Features.Account.UpdateProfile;
 
-namespace GreatIdeas.Template.Application.Features.Account.UpdateProfile;
+namespace GreatIdeas.Template.Application.Features.Account.UpdateAccount;
 
-public interface IStaffAccountUpdateHandler : IApplicationHandler
+public interface IUpdateAccountHandler : IApplicationHandler
 {
     ValueTask<ErrorOr<ApiResponse>> UpdateProfile(
         string userId,
@@ -11,12 +12,12 @@ public interface IStaffAccountUpdateHandler : IApplicationHandler
     );
 }
 
-internal sealed class StaffAccountUpdateHandler(
+internal sealed class UpdateAccountHandler(
     IUserRepository userRepository,
-    ILogger<StaffAccountUpdateHandler> logger
-) : IStaffAccountUpdateHandler
+    ILogger<UpdateAccountHandler> logger
+) : IUpdateAccountHandler
 {
-    private static readonly ActivitySource ActivitySource = new(nameof(StaffAccountUpdateHandler));
+    private static readonly ActivitySource ActivitySource = new(nameof(UpdateAccountHandler));
 
     public async ValueTask<ErrorOr<ApiResponse>> UpdateProfile(
         string userId,
@@ -34,7 +35,7 @@ internal sealed class StaffAccountUpdateHandler(
         // Get user
         try
         {
-            var response = await userRepository.UpdateStaffAccountAsync(
+            var response = await userRepository.UpdateAccountAsync(
                 userId,
                 request,
                 cancellationToken
@@ -54,7 +55,7 @@ internal sealed class StaffAccountUpdateHandler(
                 logger,
                 activity: activity,
                 user: userId!,
-                message: "Could not update staff account"
+                message: "Could not update account"
             );
         }
     }

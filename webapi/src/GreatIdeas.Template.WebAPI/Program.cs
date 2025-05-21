@@ -20,12 +20,6 @@ builder
     .ValidateOnStart();
 var applicationSettings = section.Get<ApplicationSettings>()!;
 
-// Add this after getting applicationSettings
-Log.Information(
-    "Database Connection: {Connection}",
-    applicationSettings.Database.PostgresConnection
-);
-
 // Bind EntraID
 // builder
 //     .Services.AddOptions<EntraIdOptions>()

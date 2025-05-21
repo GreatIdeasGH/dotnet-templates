@@ -6,8 +6,8 @@
         "Class Library"
     ],
     "name": "GreatIdeas Web API",
-    "identity": "GreatIdeas.Template.Application",
-    "groupIdentity": "GreatIdeas.Template.WebAPI",
+    "identity": "GreatIdeas.Template.WebAPI",
+    "groupIdentity": "GreatIdeas.Template",
     "shortName": "greatideas-webapi",
     "tags": {
         "language": "C#",

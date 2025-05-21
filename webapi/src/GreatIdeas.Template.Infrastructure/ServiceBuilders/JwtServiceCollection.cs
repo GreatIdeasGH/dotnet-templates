@@ -63,18 +63,6 @@ internal static class JwtServiceCollection
             {
                 options.SaveToken = true;
                 options.TokenValidationParameters = tokenValidationParameters;
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
-                    {
-                        context.Request.Cookies.TryGetValue("accessToken", out var accessToken);
-                        if (!string.IsNullOrEmpty(accessToken))
-                        {
-                            context.Token = accessToken;
-                        }
-                        return Task.CompletedTask;
-                    },
-                };
             });
 
         JwtSecurityTokenHandler.DefaultMapInboundClaims = false;

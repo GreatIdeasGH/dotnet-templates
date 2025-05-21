@@ -2,7 +2,17 @@
 @userId = d0ddc668-89ea-4dca-85f8-3e9571910453
 @bearerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlNzgxYWQyMC04OTdmLTQyMzgtYmJmZi1hOTllM2QyYWNlZTYiLCJpZCI6ImQwZGRjNjY4LTg5ZWEtNGRjYS04NWY4LTNlOTU3MTkxMDQ1MyIsInVzZXJuYW1lIjoiYWRtaW4iLCJuYW1lIjoiQWRtaW4gTmFtZSIsImFjY291bnRfdHlwZSI6IkFkbWluIiwiZW1haWwiOiJhZG1pbkBlbWFpbC5jb20iLCJyb2xlIjoiQWRtaW4iLCJwZXJtaXNzaW9uIjoiVmlldy5BdWRpdExvZ3MiLCJuYmYiOjE3NDc2NDAwMDksImV4cCI6MTc0NzY1MDgwOSwiaWF0IjoxNzQ3NjQwMDA5LCJpc3MiOiJHcmVhdElkZWFzLlRlbXBsYXRlLldlYkFQSSIsImF1ZCI6IkdyZWF0SWRlYXMuVGVtcGxhdGUuV2ViQVBJIn0.2GNHQH1V-9vbusu_RSi31FwXUVHk6cE1sNL1OvzN2jg
 
-# Update profile
+### Login 
+
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "P@ssword1"
+}
+
+### Update profile
 
 PATCH {{baseUrl}}/{{userId}}/profile
 Accept: application/json
@@ -10,10 +20,8 @@ Content-Type: application/json
 Authorization: Bearer {{bearerToken}}
 
 {
-  "userId": "{{userId}}",
-  "username": "maale",
-  "email": "geraldmaale@gmail.com",
-  "phoneNumber": "17000000003"
+  "fullName": "Gerald Maale",
+  "phoneNumber": "02100000003"
 }
 
 ### Get account

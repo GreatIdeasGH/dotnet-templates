@@ -124,7 +124,6 @@ public static class SeedDatabase
                 EmailConfirmed = true,
                 PhoneNumber = "0123456789",
                 PhoneNumberConfirmed = true,
-                AccountType = AccountType.Admin.Name,
                 IsActive = true,
             };
             await userManager.CreateAsync(adminUser, "P@ssword1");
@@ -134,7 +133,6 @@ public static class SeedDatabase
                     new Claim(JwtClaimTypes.Id, $"{adminUser.Id}"),
                     new Claim(UserClaims.Username, adminUser.UserName!),
                     new Claim(JwtClaimTypes.Name, "Admin Name"),
-                    new Claim(UserClaims.AccountType, adminUser.AccountType),
                     new Claim(JwtClaimTypes.Email, adminUser.Email),
                 ]
             );
@@ -151,7 +149,6 @@ public static class SeedDatabase
                 EmailConfirmed = true,
                 PhoneNumber = "0123456780",
                 PhoneNumberConfirmed = true,
-                AccountType = AccountType.User.Name,
                 IsActive = true,
             };
             await userManager.CreateAsync(user, "P@ssword1");
@@ -161,7 +158,6 @@ public static class SeedDatabase
                     new Claim(JwtClaimTypes.Id, $"{user.Id}"),
                     new Claim(UserClaims.Username, user.UserName!),
                     new Claim(JwtClaimTypes.Name, "User Name"),
-                    new Claim(UserClaims.AccountType, user.AccountType),
                     new Claim(JwtClaimTypes.Email, user.Email),
                 ]
             );
