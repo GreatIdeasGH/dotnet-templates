@@ -24,15 +24,11 @@ public sealed class ApplicationUser : IdentityUser
         PhoneNumber = phoneNumber.Trim();
     }
 
-    public void Update(string fullName, string phoneNumber, bool isActive, string email)
+    public void Update(string fullName, string phoneNumber, bool isActive)
     {
         FullName = fullName.Trim();
         PhoneNumber = phoneNumber.Trim();
-        UserName = email.Trim().ToLowerInvariant();
-        NormalizedUserName = email.Trim().ToUpperInvariant();
         IsActive = isActive;
-        Email = email.ToLowerInvariant();
-        NormalizedEmail = email.Trim().ToUpperInvariant();
     }
 } //end ApplicationUser
 

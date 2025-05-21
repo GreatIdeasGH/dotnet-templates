@@ -1,5 +1,4 @@
-﻿
-namespace GreatIdeas.Template.Application.Features.Account.CreateAccount;
+﻿namespace GreatIdeas.Template.Application.Features.Account.CreateAccount;
 
 public sealed class AccountCreationValidator : AbstractValidator<CreateAccountRequest>
 {
@@ -27,7 +26,7 @@ public sealed class AccountCreationValidator : AbstractValidator<CreateAccountRe
             .WithMessage(errorMessage: "Phone number is required")
             .Matches(RegexValidator.PhoneNumberRegex())
             .WithMessage("Phone number is not valid")
-            .Length(11)
+            .Length(10)
             .WithMessage("Phone number should be 10 digits");
 
         RuleFor(x => x.Password)

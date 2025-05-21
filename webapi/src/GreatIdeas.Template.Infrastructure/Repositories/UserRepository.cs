@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using GreatIdeas.Template.Application.Common.Params;
 using GreatIdeas.Template.Application.Features.Account;
 using GreatIdeas.Template.Application.Features.Account.CreateAccount;
 using GreatIdeas.Template.Application.Features.Account.GetAccount;
@@ -19,7 +20,7 @@ internal sealed class UserRepository(
 ) : IUserRepository
 {
     private static readonly ActivitySource ActivitySource = new(nameof(UserRepository));
-   
+
     public async ValueTask<ApplicationUser?> FindById(string userId)
     {
         using var activity = ActivitySource.CreateActivity(nameof(FindById), ActivityKind.Server);
@@ -45,6 +46,7 @@ internal sealed class UserRepository(
         var userRole = await userManager.GetRolesAsync(user);
         var result = new UserAccountResponse()
         {
+            FullName = user.FullName!,
             UserId = user.Id,
             Email = user.Email!,
             PhoneNumber = user.PhoneNumber!,
@@ -55,7 +57,7 @@ internal sealed class UserRepository(
         return result;
     }
 
-    public async Task<ErrorOr<LoginResponse>> Login(
+    public async ValueTask<ErrorOr<LoginResponse>> Login(
         LoginRequest request,
         CancellationToken cancellationToken
     )
@@ -149,7 +151,7 @@ internal sealed class UserRepository(
         }
     }
 
-    public async Task<ErrorOr<AccountCreatedResponse>> CreateAccount(
+    public async ValueTask<ErrorOr<AccountCreatedResponse>> CreateAccount(
         CreateAccountRequest request,
         CancellationToken cancellationToken
     )
@@ -174,6 +176,17 @@ internal sealed class UserRepository(
                 "CreateUser",
                 ActivityKind.Server
             );
+
+            // Get duplicate phone number
+            var phoneNumberExists = await dbContext
+                .Users.AsNoTracking()
+                .AnyAsync(x => x.PhoneNumber == request.PhoneNumber, cancellationToken);
+            if (phoneNumberExists)
+            {
+                var errorPhoneNumber = DomainUserErrors.PhoneNumberExists(request.PhoneNumber);
+                logger.LogUserError(request.Email!, errorPhoneNumber.Description);
+                return errorPhoneNumber;
+            }
 
             // Create user
             var userExists = await dbContext
@@ -233,10 +246,7 @@ internal sealed class UserRepository(
                 // Commit transaction
                 await transaction.CommitAsync(cancellationToken);
 
-                return new AccountCreatedResponse(
-                    Email: request.Email!,
-                    VerificationCode: code
-                );
+                return new AccountCreatedResponse(Email: request.Email!, VerificationCode: code);
             }
 
             var error = DomainUserErrors.CreationFailed(
@@ -276,9 +286,28 @@ internal sealed class UserRepository(
 
         try
         {
+            // Get user
             var existingUser = await dbContext
                 .Users.Where(x => x.Id == userId)
                 .FirstOrDefaultAsync(cancellationToken);
+
+            if (existingUser is null)
+            {
+                var errorNotFound = DomainUserErrors.UserNotFound;
+                logger.LogUserError(userId, errorNotFound.Description);
+                return errorNotFound;
+            }
+
+            // Get duplicate phone number
+            var phoneNumberExists = await dbContext
+                .Users.AsNoTracking()
+                .AnyAsync(x => x.PhoneNumber == request.PhoneNumber, cancellationToken);
+            if (phoneNumberExists && existingUser.PhoneNumber != request.PhoneNumber)
+            {
+                var errorPhoneNumber = DomainUserErrors.PhoneNumberExists(request.PhoneNumber);
+                logger.LogUserError(userId, errorPhoneNumber.Description);
+                return errorPhoneNumber;
+            }
 
             existingUser!.Update(request.FullName, request.PhoneNumber);
             dbContext.Entry(existingUser).State = EntityState.Modified;
@@ -299,9 +328,13 @@ internal sealed class UserRepository(
                     {
                         // Update claims
                         var nameClaim = new Claim(JwtClaimTypes.Name, request.FullName.Trim());
-                        var phoneNumberClaim = new Claim(JwtClaimTypes.PhoneNumber, request.PhoneNumber.Trim());
+                        var phoneNumberClaim = new Claim(
+                            JwtClaimTypes.PhoneNumber,
+                            request.PhoneNumber.Trim()
+                        );
                         await userManager.AddClaimsAsync(
-                            existingUser!,[nameClaim, phoneNumberClaim]
+                            existingUser!,
+                            [nameClaim, phoneNumberClaim]
                         );
                     }
                 }
@@ -344,17 +377,47 @@ internal sealed class UserRepository(
         );
         activity?.Start();
 
+        // Get user
         var existingUser = await dbContext
             .Users.Where(x => x.Id == userId)
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (existingUser is not null)
+        if (existingUser is null)
+        {
+            var errorNotFound = DomainUserErrors.UserNotFound;
+            logger.LogUserError(userId, errorNotFound.Description);
+            return errorNotFound;
+        }
+
+        // Get duplicate phone number
+        var phoneNumberExists = await dbContext
+            .Users.AsNoTracking()
+            .AnyAsync(x => x.PhoneNumber == request.PhoneNumber, cancellationToken);
+
+        if (phoneNumberExists && existingUser.PhoneNumber != request.PhoneNumber)
+        {
+            var errorPhoneNumber = DomainUserErrors.PhoneNumberExists(request.PhoneNumber);
+            logger.LogUserError(userId, errorPhoneNumber.Description);
+            return errorPhoneNumber;
+        }
+
+        existingUser!.Update(request.FullName, request.PhoneNumber, request.IsActive);
+        dbContext.Entry(existingUser).State = EntityState.Modified;
+        var result = await dbContext.SaveChangesAsync(cancellationToken);
+
+        if (result > 0)
         {
             var claims = await userManager.GetClaimsAsync(existingUser);
 
             // Update claims
             var claimsToDelete = claims
-                .Where(x => x.Type is JwtClaimTypes.Name or JwtClaimTypes.PhoneNumber or JwtClaimTypes.Email or UserClaims.Username)
+                .Where(x =>
+                    x.Type
+                        is JwtClaimTypes.Name
+                            or JwtClaimTypes.PhoneNumber
+                            or JwtClaimTypes.Email
+                            or UserClaims.Username
+                )
                 .ToList();
             if (claimsToDelete.Count > 0)
             {
@@ -363,30 +426,34 @@ internal sealed class UserRepository(
                 {
                     // Update claims
                     var nameClaim = new Claim(JwtClaimTypes.Name, request.FullName.Trim());
-                    var phoneNumberClaim = new Claim(JwtClaimTypes.PhoneNumber, request.PhoneNumber.Trim());
+                    var phoneNumberClaim = new Claim(
+                        JwtClaimTypes.PhoneNumber,
+                        request.PhoneNumber.Trim()
+                    );
                     var emailClaim = new Claim(JwtClaimTypes.Email, request.Email.Trim());
                     var usernameClaim = new Claim(UserClaims.Username, request.Username.Trim());
                     await userManager.AddClaimsAsync(
-                        existingUser,[nameClaim, phoneNumberClaim, emailClaim, usernameClaim]
+                        existingUser,
+                        [nameClaim, phoneNumberClaim, emailClaim, usernameClaim]
                     );
                 }
             }
-            
+
             // Update role
-                var userRoles = await userManager.GetRolesAsync(existingUser);
-                if (userRoles.Any())
+            var userRoles = await userManager.GetRolesAsync(existingUser);
+            if (userRoles.Any())
+            {
+                var existingRole = userRoles.FirstOrDefault(x => x == request.Role)!;
+
+                // if existing role and request role are different, update role
+                if (userRoles.Count > 0 && string.IsNullOrEmpty(existingRole))
                 {
-                    var existingRole = userRoles.FirstOrDefault(x => x == request.Role)!;
-
-                    // if existing role and request role are different, update role
-                    if (userRoles.Count > 0 && string.IsNullOrEmpty(existingRole))
-                    {
-                        await userManager.RemoveFromRoleAsync(existingUser, existingRole);
-                        await userManager.AddToRoleAsync(existingUser!, request.Role);
-                    }
+                    await userManager.RemoveFromRoleAsync(existingUser, existingRole);
+                    await userManager.AddToRoleAsync(existingUser!, request.Role);
                 }
+            }
 
-                var message = "Updated account successfully.";
+            var message = "Updated account successfully.";
             logger.LogUserInfo(userId, message);
             OtelUserConstants.AddInfoEvent(userId, message, activity);
             return message;
@@ -457,6 +524,25 @@ internal sealed class UserRepository(
         return users.Any(x => x.Id == userId);
     }
 
+    public async ValueTask<IPagedList<UserAccountResponse>> GetPagedUsersAsync(
+        PagingParameters pagingParameters,
+        CancellationToken cancellationToken
+    )
+    {
+        //TODO: Add role to users
+        var users = FilterUsers(pagingParameters);
+
+        var response = await users
+            .ToUsers()
+            .ToPagedListAsync(
+                pagingParameters.PageNumber,
+                pageSize: pagingParameters.PageSize,
+                totalSetCount: null,
+                cancellationToken: cancellationToken
+            );
+        return response;
+    }
+
     private async Task<ErrorOr<RefreshTokenResponse>> ValidateTokenAndPatchUser(
         ApplicationUser currentUser,
         CancellationToken cancellationToken
@@ -501,5 +587,38 @@ internal sealed class UserRepository(
 
         return tokenResponse;
     }
-    
+
+    private IQueryable<ApplicationUser> FilterUsers(PagingParameters pagingParameters)
+    {
+        using var activity = ActivitySource.CreateActivity(
+            nameof(FilterUsers),
+            ActivityKind.Server
+        );
+        activity?.Start();
+
+        var collections = dbContext
+            .Users.AsNoTracking()
+            .AsNoTracking()
+            .TagWith("FilterUsers")
+            .AsQueryable();
+
+        // Search
+        if (!string.IsNullOrWhiteSpace(pagingParameters.Search))
+        {
+            var searchPattern = $"%{pagingParameters.Search!.Trim()}%";
+            collections = collections.Where(a =>
+                EF.Functions.ILike(a.FullName, searchPattern)
+                || EF.Functions.ILike(a.PhoneNumber!, searchPattern)
+                || EF.Functions.ILike(a.Email!, searchPattern)
+            );
+        }
+
+        // Sort
+        if (pagingParameters.OrderBy is null)
+        {
+            collections = collections.OrderBy(a => a.FullName);
+        }
+
+        return collections;
+    }
 }

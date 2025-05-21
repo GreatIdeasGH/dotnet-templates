@@ -1,6 +1,6 @@
 @baseUrl = https://localhost:7139/api/accounts
-@userId = d0ddc668-89ea-4dca-85f8-3e9571910453
-@bearerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlNzgxYWQyMC04OTdmLTQyMzgtYmJmZi1hOTllM2QyYWNlZTYiLCJpZCI6ImQwZGRjNjY4LTg5ZWEtNGRjYS04NWY4LTNlOTU3MTkxMDQ1MyIsInVzZXJuYW1lIjoiYWRtaW4iLCJuYW1lIjoiQWRtaW4gTmFtZSIsImFjY291bnRfdHlwZSI6IkFkbWluIiwiZW1haWwiOiJhZG1pbkBlbWFpbC5jb20iLCJyb2xlIjoiQWRtaW4iLCJwZXJtaXNzaW9uIjoiVmlldy5BdWRpdExvZ3MiLCJuYmYiOjE3NDc2NDAwMDksImV4cCI6MTc0NzY1MDgwOSwiaWF0IjoxNzQ3NjQwMDA5LCJpc3MiOiJHcmVhdElkZWFzLlRlbXBsYXRlLldlYkFQSSIsImF1ZCI6IkdyZWF0SWRlYXMuVGVtcGxhdGUuV2ViQVBJIn0.2GNHQH1V-9vbusu_RSi31FwXUVHk6cE1sNL1OvzN2jg
+@userId = f379957b-abfc-4728-9726-d37ee0baacd8
+@bearerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiMWZjM2FjMi01MzRiLTRhNmEtOThkOC1hMzU0YTg1NDc1NGIiLCJpZCI6ImYzNzk5NTdiLWFiZmMtNDcyOC05NzI2LWQzN2VlMGJhYWNkOCIsInVzZXJuYW1lIjoiYWRtaW4iLCJuYW1lIjoiQWRtaW4gTmFtZSIsImVtYWlsIjoiYWRtaW5AZW1haWwuY29tIiwicm9sZSI6IkFkbWluIiwicGVybWlzc2lvbiI6WyJWaWV3LkFjY291bnQiLCJNYW5hZ2UuQWNjb3VudCIsIkRlbGV0ZS5BY2NvdW50IiwiVmlldy5BdWRpdExvZ3MiLCJNYW5hZ2UuQXVkaXRMb2dzIl0sIm5iZiI6MTc0Nzc5NjA3MCwiZXhwIjoxNzQ3ODA2ODcwLCJpYXQiOjE3NDc3OTYwNzAsImlzcyI6IkdyZWF0SWRlYXMuVGVtcGxhdGUuV2ViQVBJIiwiYXVkIjoiR3JlYXRJZGVhcy5UZW1wbGF0ZS5XZWJBUEkifQ.cuRDqxYRKlsFaPBFeyMrhkDqmbJxNcODozKQh48fl9o
 
 ### Login 
 
@@ -12,6 +12,28 @@ Content-Type: application/json
   "password": "P@ssword1"
 }
 
+### Get account
+GET {{baseUrl}}/{{userId}}
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+### Create account 
+
+POST {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "username": "geralds@email.com",
+  "fullName": "Gerald Maale",
+  "email": "geralds@email.com",
+  "phoneNumber": "0210000002",
+  "role": "Admin",
+  "password": "P@ssword1",
+  "confirmPassword": "P@ssword1"
+}
+
 ### Update profile
 
 PATCH {{baseUrl}}/{{userId}}/profile
@@ -21,11 +43,27 @@ Authorization: Bearer {{bearerToken}}
 
 {
   "fullName": "Gerald Maale",
-  "phoneNumber": "02100000003"
+  "phoneNumber": "0210000002"
 }
 
-### Get account
-GET {{baseUrl}}/{{userId}}
+### Update account
+
+PUT {{baseUrl}}/{{userId}}
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "fullName": "Gerald Maale",
+  "username": "gerald@email.com",
+  "email": "gerald@email.com",
+  "phoneNumber": "0210000033",
+  "isActive": true,
+  "role": "Admin"
+}
+
+### Get paged accounts
+GET {{baseUrl}}/paged?pageNumber=1&pageSize=10
 Accept: application/json
 Content-Type: application/json
 Authorization: Bearer {{bearerToken}}

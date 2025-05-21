@@ -1,4 +1,5 @@
 ﻿using GreatIdeas.Template.WebAPI.Endpoints;
+using GreatIdeas.Template.WebAPI.Extensions;
 using GreatIdeas.Template.WebAPI.OpenApi;
 
 namespace GreatIdeas.Template.WebAPI.ServiceBuilders;

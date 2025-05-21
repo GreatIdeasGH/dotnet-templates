@@ -15,6 +15,11 @@ public static class AuthorizationServiceCollection
             // Audit Policies
             options.AddPolicy(AppPermissions.Audit.View, AuditPolicy.CanViewAudit());
             options.AddPolicy(AppPermissions.Audit.Manage, AuditPolicy.CanManageAudit());
+
+            // Account Policies
+            options.AddPolicy(AppPermissions.Account.View, AccountPolicy.CanView());
+            options.AddPolicy(AppPermissions.Account.Manage, AccountPolicy.CanManage());
+            options.AddPolicy(AppPermissions.Account.Delete, AccountPolicy.CanDelete());
         });
 
         return services;

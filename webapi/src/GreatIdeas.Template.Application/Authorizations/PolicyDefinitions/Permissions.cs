@@ -4,24 +4,25 @@ using System.ComponentModel.DataAnnotations;
 namespace GreatIdeas.Template.Application;
 
 public static class AppPermissions
-{ 
-
-    public static class Staff
+{
+    public static class Account
     {
-        [Display(Name = "ViewStaff")]
-        public const string View = "View.Staff";
-        [Display(Name = "ManageStaff")]
-        public const string Manage = "Manage.Staff";
-        [Display(Name = "DeleteStaff")]
-        public const string Delete = "Delete.Staff";
+        [Display(Name = "ViewAccount")]
+        public const string View = "View.Account";
+
+        [Display(Name = "ManageAccount")]
+        public const string Manage = "Manage.Account";
+
+        [Display(Name = "DeleteAccount")]
+        public const string Delete = "Delete.Account";
     }
-     
 
     public static class Audit
     {
         [Display(Name = "ViewAudits")]
         public const string View = "View.AuditLogs";
+
         [Display(Name = "ManageAudits")]
         public const string Manage = "Manage.AuditLogs";
-    }    
+    }
 }

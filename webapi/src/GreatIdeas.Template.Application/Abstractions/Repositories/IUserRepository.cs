@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using GreatIdeas.Template.Application.Common.Params;
 using GreatIdeas.Template.Application.Features.Account.CreateAccount;
 using GreatIdeas.Template.Application.Features.Account.GetAccount;
 using GreatIdeas.Template.Application.Features.Account.Login;
@@ -13,10 +14,16 @@ public interface IUserRepository
 {
     ValueTask<ApplicationUser?> FindById(string userId);
     ValueTask<ErrorOr<UserAccountResponse>> GetUserAccountAsync(string userId);
+    ValueTask<IPagedList<UserAccountResponse>> GetPagedUsersAsync(
+        PagingParameters pagingParameters,
+        CancellationToken cancellationToken
+    );
+    ValueTask<ErrorOr<LoginResponse>> Login(
+        LoginRequest request,
+        CancellationToken cancellationToken
+    );
 
-    Task<ErrorOr<LoginResponse>> Login(LoginRequest request, CancellationToken cancellationToken);
-
-    Task<ErrorOr<AccountCreatedResponse>> CreateAccount(
+    ValueTask<ErrorOr<AccountCreatedResponse>> CreateAccount(
         CreateAccountRequest request,
         CancellationToken cancellationToken
     );

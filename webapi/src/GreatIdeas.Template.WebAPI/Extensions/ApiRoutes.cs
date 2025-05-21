@@ -4,7 +4,7 @@ public static partial class ApiRoutes
 {
     public const string ApiServerEndpoint = "ServerAPI";
     public const string AuthEndpoint = "api/auth";
-    public const string AccountEndpoint = "api/accounts/{userId}";
+    public const string AccountEndpoint = "api/accounts";
     public const string LevelEndpoint = "api/levels";
     public const string StudentEndpoint = "api/students";
     public const string UnitEndpoint = "api/units";

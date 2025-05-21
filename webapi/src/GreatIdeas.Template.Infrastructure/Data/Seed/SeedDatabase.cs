@@ -1,4 +1,5 @@
 ﻿using GreatIdeas.Template.Application;
+using GreatIdeas.Template.Application.Authorizations.PolicyDefinitions;
 using Microsoft.Extensions.Hosting;
 
 namespace GreatIdeas.Template.Infrastructure.Data.Seed;
@@ -36,14 +37,14 @@ public static class SeedDatabase
 
                 var result = roleManager.CreateAsync(adminRole).Result;
                 if (result.Succeeded)
-                { // Seed admin permissions
-                    List<Claim> claims =
-                    [
-                        new Claim(UserClaims.Permission, AppPermissions.Audit.View),
-                    ];
-                    foreach (var claim in claims)
+                {
+                    // Add all Permissions
+                    var allClaims = EntityPermissions.GetAllPermissionValues().Distinct().ToArray();
+                    foreach (var claim in allClaims)
                     {
-                        _ = roleManager.AddClaimAsync(adminRole, claim).Result;
+                        _ = roleManager
+                            .AddClaimAsync(adminRole, new Claim(UserClaims.Permission, claim!))
+                            .Result;
                     }
 
                     Log.Information("Created {Role}", adminRole);
@@ -72,6 +73,7 @@ public static class SeedDatabase
                     List<Claim> claims =
                     [
                         new Claim(UserClaims.Permission, AppPermissions.Audit.View),
+                        new Claim(UserClaims.Permission, AppPermissions.Account.View),
                     ];
 
                     foreach (var claim in claims)
@@ -119,6 +121,7 @@ public static class SeedDatabase
         {
             var adminUser = new ApplicationUser
             {
+                FullName = "Admin Name",
                 UserName = "admin",
                 Email = "admin@email.com",
                 EmailConfirmed = true,
@@ -144,6 +147,7 @@ public static class SeedDatabase
         {
             var user = new ApplicationUser
             {
+                FullName = "User Name",
                 UserName = "user",
                 Email = "user@email.com",
                 EmailConfirmed = true,

@@ -1,7 +1,8 @@
 ﻿using System.Reflection;
+using GreatIdeas.Template.WebAPI.Endpoints;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace GreatIdeas.Template.WebAPI.Endpoints;
+namespace GreatIdeas.Template.WebAPI.Extensions;
 
 public static class ApiEndpointsRegistration
 {

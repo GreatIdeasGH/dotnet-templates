@@ -28,7 +28,9 @@ public sealed class AccountUpdateValidator : AbstractValidator<AccountUpdateRequ
             .WithMessage(errorMessage: "Phone number is required")
             .Matches(RegexValidator.PhoneNumberRegex())
             .WithMessage("Phone number is not valid")
-            .Length(11)
+            .Length(10)
             .WithMessage("Phone number should be 10 digits");
+
+        RuleFor(x => x.Role).NotEmpty().WithMessage(errorMessage: "Select user role");
     }
 }

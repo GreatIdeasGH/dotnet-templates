@@ -1,6 +1,10 @@
 using FluentValidation;
+using GreatIdeas.PagedList;
+using GreatIdeas.Template.Application;
+using GreatIdeas.Template.Application.Common.Params;
 using GreatIdeas.Template.Application.Features.Account.CreateAccount;
 using GreatIdeas.Template.Application.Features.Account.GetAccount;
+using GreatIdeas.Template.Application.Features.Account.GetPagedUsers;
 using GreatIdeas.Template.Application.Features.Account.Login;
 using GreatIdeas.Template.Application.Features.Account.ResetPassword;
 using GreatIdeas.Template.Application.Features.Account.UpdateAccount;
@@ -13,70 +17,81 @@ public sealed class AccountEndpoints : IEndpoint
 {
     public void MapEndpoints(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ApiRoutes.AccountEndpoint)
-            .WithTags("accounts")
-            .WithOpenApi()
-            .RequireAuthorization();
+        var group = app.MapGroup(ApiRoutes.AccountEndpoint).WithTags("accounts").WithOpenApi();
 
         // GET: api/accounts/{userId}
         group
-            .MapGet("", GetAccount)
-            .WithName("GetAccount")
+            .MapGet("{userId}", GetAccount)
+            .WithName(nameof(GetAccount))
             .WithDescription("Get user account")
             .WithSummary("Get user account")
             .Produces<UserAccountResponse>()
-            .ProducesCommonForbiddenErrors();
+            .ProducesCommonForbiddenErrors()
+            .RequireAuthorization(AppPermissions.Account.View);
+
+        // GET: api/accounts/paged
+        group
+            .MapGet("paged", GetPagedUsers)
+            .WithName(nameof(GetPagedUsers))
+            .WithDescription("Get users with pagination")
+            .WithSummary("Get users with pagination")
+            .Produces<ApiPagingResponse<UserAccountResponse>>()
+            .ProducesCommonForbiddenErrors()
+            .RequireAuthorization(AppPermissions.Account.View);
 
         // POST: api/accounts
         group
             .MapPost("", CreateAccount)
-            .WithName("CreateAccount")
+            .WithName(nameof(CreateAccount))
             .WithDescription("Create a new user account")
             .WithSummary("Create a new user account")
             .Produces<AccountCreatedResponse>()
             .ProducesCommonErrors()
-            .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict);
+            .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
+            .RequireAuthorization(AppPermissions.Account.Manage);
 
         // PATCH: api/accounts/{userId}/profile
         group
-            .MapPatch("profile", UpdateProfile)
-            .WithName("UpdateProfile")
+            .MapPatch("{userId}/profile", UpdateProfile)
+            .WithName(nameof(UpdateProfile))
             .WithDescription("Update student user account")
             .WithSummary("Update student user account")
             .Produces<ApiResponse>()
             .ProducesCommonForbiddenErrors()
-            .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict);
+            .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
+            .RequireAuthorization(AppPermissions.Account.View);
 
         // UPDATE: api/accounts/{userId}"
         group
-            .MapPut("", UpdateAccount)
-            .WithName("UpdateStaffAccount")
-            .WithDescription("Update staff user account")
+            .MapPut("{userId}", UpdateAccount)
+            .WithName(nameof(UpdateAccount))
+            .WithDescription("Update user account")
             .WithSummary("Update staff user account")
             .Produces<ApiResponse>()
             .ProducesCommonForbiddenErrors()
-            .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict);
+            .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
+            .RequireAuthorization(AppPermissions.Account.Manage);
 
         // PUT: api/accounts/{userId}/resetPassword
         group
-            .MapPatch("resetPassword", ResetPassword)
-            .WithName("ResetPassword")
+            .MapPatch("{userId}/resetPassword", ResetPassword)
+            .WithName(nameof(ResetPassword))
             .WithDescription("Reset user password")
             .WithSummary("Reset user password")
             .Produces<ApiResponse>()
-            .ProducesCommonForbiddenErrors();
+            .ProducesCommonForbiddenErrors()
+            .RequireAuthorization(AppPermissions.Account.View);
 
         // POST: api/account/login
         group
             .MapPost("login", LoginAccount)
-            .WithName("Login")
+            .WithName(nameof(LoginAccount))
             .WithDescription("Login to the application with valid credentials")
             .WithSummary("Login to the application")
             .Produces<LoginResponse>()
             .Produces<ApiValidationResponse>(StatusCodes.Status400BadRequest)
             .ProducesCommonErrors();
     }
-
 
     // GET: api/account/{userId}
     public static async Task<IResult> GetAccount(
@@ -91,7 +106,29 @@ public sealed class AccountEndpoints : IEndpoint
             errors => Results.Extensions.Problem(errors)
         );
     }
-    
+
+    // GET: api/account/paged
+
+    public static async Task<IResult> GetPagedUsers(
+        [AsParameters] PagingParameters pagingParams,
+        IGetPagedUsersHandler handler,
+        HttpResponse response,
+        CancellationToken token
+    )
+    {
+        var result = await handler.GetPagedUsers(pagingParams, token);
+        if (result.IsError)
+        {
+            return Results.Extensions.Problem(result.Errors);
+        }
+
+        var pagination = new PagedListMetaData(result.Value);
+        var paged = new ApiPagingResponse<UserAccountResponse>(result.Value, pagination);
+
+        response.Headers.Append("X-Pagination", JsonSerializer.Serialize(pagination));
+        return TypedResults.Ok(paged);
+    }
+
     // POST: api/account
     public static async Task<IResult> CreateAccount(
         [FromBody] CreateAccountRequest model,
@@ -169,7 +206,7 @@ public sealed class AccountEndpoints : IEndpoint
             errors => Results.Extensions.Problem(errors)
         );
     }
-    
+
     // POST: api/account/login
     public static async Task<IResult> LoginAccount(
         LoginRequest model,
