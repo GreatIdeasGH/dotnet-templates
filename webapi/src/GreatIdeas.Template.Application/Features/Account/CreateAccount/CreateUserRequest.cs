@@ -12,4 +12,4 @@ public struct CreateAccountRequest
     public string ConfirmPassword { get; set; }
 }
 
-public record AccountCreatedResponse(string Email, string VerificationCode);
+public record AccountCreatedResponse(string UserId, string Email, string VerificationCode);

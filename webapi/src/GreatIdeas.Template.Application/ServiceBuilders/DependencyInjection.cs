@@ -1,4 +1,6 @@
 ﻿using GreatIdeas.Template.Application.Common.Options;
+using GreatIdeas.Template.Application.Features.Account.ConfirmEmail;
+using GreatIdeas.Template.Application.Features.Account.ForgotPassword;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -21,6 +23,9 @@ public static class DependencyInjection
         builder.Services.AddScoped<IBlobService, BlobService>();
         builder.Services.AddScoped<ITenantService, TenantService>();
 
+        builder.Services.TryAddScoped<SendConfirmationEmail>();
+        builder.Services.TryAddScoped<SendTemporalPasswordEmail>();
+
         // MassTransit
         builder.AddMassTransitServices(applicationSettings);
 
@@ -36,13 +41,6 @@ public static class DependencyInjection
             var service = handler.GetInterfaces().First(i => i != handlerType);
             builder.Services.TryAddScoped(service, handler);
         }
-
-        // Authorizations
-        builder.Services.AddAuthorization(options =>
-        {
-            options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
-            options.AddPolicy("User", policy => policy.RequireRole("User"));
-        });
 
         // return builder
         return builder;

@@ -10,8 +10,13 @@ public static class AuthorizationServiceCollection
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
         services.AddSingleton<IAuthorizationPolicyProvider, AuthorizationPolicyProvider>();
 
+        // Authorizations
         services.AddAuthorizationCore(options =>
         {
+            // Add roles
+            options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+            options.AddPolicy("User", policy => policy.RequireRole("User"));
+
             // Audit Policies
             options.AddPolicy(AppPermissions.Audit.View, AuditPolicy.CanViewAudit());
             options.AddPolicy(AppPermissions.Audit.Manage, AuditPolicy.CanManageAudit());

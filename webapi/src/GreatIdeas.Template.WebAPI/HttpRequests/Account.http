@@ -1,6 +1,16 @@
 @baseUrl = https://localhost:7139/api/accounts
 @userId = f379957b-abfc-4728-9726-d37ee0baacd8
-@bearerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJiMWZjM2FjMi01MzRiLTRhNmEtOThkOC1hMzU0YTg1NDc1NGIiLCJpZCI6ImYzNzk5NTdiLWFiZmMtNDcyOC05NzI2LWQzN2VlMGJhYWNkOCIsInVzZXJuYW1lIjoiYWRtaW4iLCJuYW1lIjoiQWRtaW4gTmFtZSIsImVtYWlsIjoiYWRtaW5AZW1haWwuY29tIiwicm9sZSI6IkFkbWluIiwicGVybWlzc2lvbiI6WyJWaWV3LkFjY291bnQiLCJNYW5hZ2UuQWNjb3VudCIsIkRlbGV0ZS5BY2NvdW50IiwiVmlldy5BdWRpdExvZ3MiLCJNYW5hZ2UuQXVkaXRMb2dzIl0sIm5iZiI6MTc0Nzc5NjA3MCwiZXhwIjoxNzQ3ODA2ODcwLCJpYXQiOjE3NDc3OTYwNzAsImlzcyI6IkdyZWF0SWRlYXMuVGVtcGxhdGUuV2ViQVBJIiwiYXVkIjoiR3JlYXRJZGVhcy5UZW1wbGF0ZS5XZWJBUEkifQ.cuRDqxYRKlsFaPBFeyMrhkDqmbJxNcODozKQh48fl9o
+@bearerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmY2I1ZmUyMy1iZGJmLTQzNWItOTcyNi02YWY0ZGRiYzg2YmYiLCJpZCI6ImYzNzk5NTdiLWFiZmMtNDcyOC05NzI2LWQzN2VlMGJhYWNkOCIsImVtYWlsIjoiZ2VyYWxkQGVtYWlsLmNvbSIsInVzZXJuYW1lIjoiZ2VyYWxkQGVtYWlsLmNvbSIsIm5hbWUiOiJHZXJhbGQgTWFhbGUiLCJwaG9uZV9udW1iZXIiOiIwMjEwMDAwMDAyIiwicm9sZSI6IkFkbWluIiwicGVybWlzc2lvbiI6WyJWaWV3LkFjY291bnQiLCJNYW5hZ2UuQWNjb3VudCIsIkRlbGV0ZS5BY2NvdW50IiwiVmlldy5BdWRpdExvZ3MiLCJNYW5hZ2UuQXVkaXRMb2dzIl0sIm5iZiI6MTc0Nzg2MDI4OCwiZXhwIjoxNzQ3ODcxMDg4LCJpYXQiOjE3NDc4NjAyODgsImlzcyI6IkdyZWF0SWRlYXMuVGVtcGxhdGUuV2ViQVBJIiwiYXVkIjoiR3JlYXRJZGVhcy5UZW1wbGF0ZS5XZWJBUEkifQ.QNbpFyxfvoRy1TuH86CDZ56Klfvyx61h9PAt7Hhh2bY
+
+### Login 
+
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "gerald@email.com",
+  "password": "string"
+}
 
 ### Login 
 
@@ -67,3 +77,63 @@ GET {{baseUrl}}/paged?pageNumber=1&pageSize=10
 Accept: application/json
 Content-Type: application/json
 Authorization: Bearer {{bearerToken}}
+
+### Delete account
+DELETE {{baseUrl}}/8d4113ec-906d-4180-a8fc-12d0fd99037f
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+### Reset password
+PATCH {{baseUrl}}/00cccbe7-0b7f-4c08-88ef-8dcc5c38df11/resetPassword
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "newPassword": "string",
+  "confirmNewPassword": "string"
+}
+
+### Change password
+POST {{baseUrl}}/{{userId}}/changePassword
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "oldPassword": "string",
+  "newPassword": "P@ssword1"
+}
+
+### Refresh token
+POST {{baseUrl}}/refreshToken
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3MDY1YjhhNy0wMGE3LTRkNDYtYjg2MC1kMTE3M2Y0MmQ5YmUiLCJpZCI6ImYzNzk5NTdiLWFiZmMtNDcyOC05NzI2LWQzN2VlMGJhYWNkOCIsImVtYWlsIjoiZ2VyYWxkQGVtYWlsLmNvbSIsInVzZXJuYW1lIjoiZ2VyYWxkQGVtYWlsLmNvbSIsIm5hbWUiOiJHZXJhbGQgTWFhbGUiLCJwaG9uZV9udW1iZXIiOiIwMjEwMDAwMDAyIiwicm9sZSI6IkFkbWluIiwicGVybWlzc2lvbiI6WyJWaWV3LkFjY291bnQiLCJNYW5hZ2UuQWNjb3VudCIsIkRlbGV0ZS5BY2NvdW50IiwiVmlldy5BdWRpdExvZ3MiLCJNYW5hZ2UuQXVkaXRMb2dzIl0sIm5iZiI6MTc0Nzg2ODU1NCwiZXhwIjoxNzQ3ODc5MzU0LCJpYXQiOjE3NDc4Njg1NTQsImlzcyI6IkdyZWF0SWRlYXMuVGVtcGxhdGUuV2ViQVBJIiwiYXVkIjoiR3JlYXRJZGVhcy5UZW1wbGF0ZS5XZWJBUEkifQ.44QgPei5oULsEcPm22fwTGU80cnugGV-H9D9d0ejCpY",
+  "refreshToken": "FYS7pfUn+QknB8xG3oOsJFfGLLi4z+sDw79bn/WFK2I="
+}
+
+### Confirm account
+POST {{baseUrl}}/confirmAccount
+Content-Type: application/json
+
+{
+  "userId": "string",
+  "confirmationCode": "string"
+}
+
+### Resend confirmation email
+POST {{baseUrl}}/resendConfirmation
+Content-Type: application/json
+
+{
+  "email": "string"
+}
+
+### Forgotten password
+POST {{baseUrl}}/forgotPassword
+Content-Type: application/json
+
+{
+  "email": "gerald@email.com"
+}

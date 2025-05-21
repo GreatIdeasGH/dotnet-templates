@@ -1,6 +1,4 @@
-﻿using GreatIdeas.Template.Application.Abstractions.Repositories;
-
-namespace GreatIdeas.Template.Application.Features.Account.Login;
+﻿namespace GreatIdeas.Template.Application.Features.Account.Login;
 
 public interface IAccountLoginHandler : IApplicationHandler
 {
@@ -38,7 +36,7 @@ internal sealed class AccountLoginHandler(
                 // Add event
                 OtelUserConstants.AddErrorEvent(
                     request.Username,
-                    activity: getUserActivity,
+                    getUserActivity,
                     loginResponse.FirstError
                 );
                 return loginResponse.Errors;
@@ -46,7 +44,7 @@ internal sealed class AccountLoginHandler(
 
             // Add event
             getUserActivity?.SetTag("user", request.Username);
-            OtelUserConstants.AddInfoEvent(
+            OtelUserConstants.AddInfoEventWithEmail(
                 request.Username,
                 activity: getUserActivity,
                 message: "User logged in successfully"
@@ -58,9 +56,9 @@ internal sealed class AccountLoginHandler(
             // Add event
             return exception.LogCriticalUser(
                 logger,
-                activity: getUserActivity,
-                user: request.Username,
-                message: "Could not login user"
+                getUserActivity,
+                request.Username,
+                "Could not login user"
             );
         }
     }

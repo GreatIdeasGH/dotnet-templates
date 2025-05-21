@@ -50,15 +50,15 @@ internal sealed class AccountCreationHandler(
 
             var message = $"User account created for {request.Username}";
             OtelConstants.AddSuccessEvent(message, activity);
-            return new ApiResponse(Message: message);
+            return new ApiResponse(message);
         }
         catch (Exception exception)
         {
             return exception.LogCriticalUser(
                 logger,
-                activity: createUserActivity,
-                user: request.PhoneNumber,
-                message: "Could not register user account"
+                createUserActivity,
+                request.PhoneNumber,
+                "Could not create user account"
             );
         }
     }

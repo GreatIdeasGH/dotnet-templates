@@ -1,11 +1,17 @@
 using FluentValidation;
 using GreatIdeas.PagedList;
-using GreatIdeas.Template.Application;
+using GreatIdeas.Template.Application.Authorizations.PolicyDefinitions;
 using GreatIdeas.Template.Application.Common.Params;
+using GreatIdeas.Template.Application.Features.Account.ChangePassword;
+using GreatIdeas.Template.Application.Features.Account.ConfirmEmail;
 using GreatIdeas.Template.Application.Features.Account.CreateAccount;
+using GreatIdeas.Template.Application.Features.Account.DeleteAccount;
+using GreatIdeas.Template.Application.Features.Account.ForgotPassword;
 using GreatIdeas.Template.Application.Features.Account.GetAccount;
 using GreatIdeas.Template.Application.Features.Account.GetPagedUsers;
 using GreatIdeas.Template.Application.Features.Account.Login;
+using GreatIdeas.Template.Application.Features.Account.RefreshToken;
+using GreatIdeas.Template.Application.Features.Account.ResendEmail;
 using GreatIdeas.Template.Application.Features.Account.ResetPassword;
 using GreatIdeas.Template.Application.Features.Account.UpdateAccount;
 using GreatIdeas.Template.Application.Features.Account.UpdateProfile;
@@ -91,6 +97,57 @@ public sealed class AccountEndpoints : IEndpoint
             .Produces<LoginResponse>()
             .Produces<ApiValidationResponse>(StatusCodes.Status400BadRequest)
             .ProducesCommonErrors();
+
+        // DELETE: api/account
+        group
+            .MapDelete("{userId}", DeleteAccount)
+            .WithName(nameof(DeleteAccount))
+            .WithDescription("Delete user account")
+            .WithSummary("Delete user account")
+            .Produces<ApiResponse>()
+            .Produces<ApiValidationResponse>(StatusCodes.Status400BadRequest)
+            .ProducesCommonErrors()
+            .RequireAuthorization(AppPermissions.Account.Delete);
+
+        // POST: api/account/{userid}/changePassword
+        group.MapPost("{userId}/changePassword", ChangePassword)
+            .WithName(nameof(ChangePassword))
+            .WithDescription("Change user password by userId")
+            .WithSummary("Change user password by userId")
+            .Produces<ApiResponse>()
+            .ProducesCommonErrors()
+            .RequireAuthorization(AppPermissions.Account.Manage);
+
+        // POST: api/account/refreshtoken
+        group.MapPost("refreshToken", RefreshToken)
+            .WithName(nameof(RefreshToken))
+            .WithDescription("Refresh token for a logged in user")
+            .WithSummary("Refresh token")
+            .Produces<RefreshTokenResponse>()
+            .ProducesCommonErrors()
+            .RequireAuthorization();
+
+
+        group.MapPost("confirmAccount", ConfirmAccount)
+            .WithName(nameof(ConfirmAccount))
+            .WithDescription("Confirm the account of the user")
+            .WithSummary("Confirm account")
+            .Produces<ApiResponse>()
+            .ProducesCommonErrors();
+
+        group.MapPost("resendConfirmation", ResendConfirmationEmail)
+            .WithName(nameof(ResendConfirmationEmail))
+            .WithDescription("Resend the confirmation to the email")
+            .WithSummary("Resend confirmation")
+            .Produces<ApiResponse>()
+            .ProducesCommonErrors();
+
+        group.MapPost("forgotPassword", ForgottenPassword)
+            .WithName(nameof(ForgottenPassword))
+            .WithDescription("Send a forgotten password confirmation to user")
+            .WithSummary("Forgotten Password")
+            .Produces<ApiResponse>()
+            .ProducesCommonErrors();
     }
 
     // GET: api/account/{userId}
@@ -139,7 +196,9 @@ public sealed class AccountEndpoints : IEndpoint
     {
         var validated = await validator.ValidateAsync(model, token);
         if (!validated.IsValid)
+        {
             return TypedResults.ValidationProblem(validated.ToDictionary());
+        }
 
         var response = await handler.RegisterAccountHandler(model, token);
         return response.Match(
@@ -159,7 +218,9 @@ public sealed class AccountEndpoints : IEndpoint
     {
         var validated = await validator.ValidateAsync(model, token);
         if (!validated.IsValid)
+        {
             return TypedResults.ValidationProblem(validated.ToDictionary());
+        }
 
         var response = await handler.UpdateProfile(userId, model, token);
         return response.Match(
@@ -179,7 +240,9 @@ public sealed class AccountEndpoints : IEndpoint
     {
         var validated = await validator.ValidateAsync(model, token);
         if (!validated.IsValid)
+        {
             return TypedResults.ValidationProblem(validated.ToDictionary());
+        }
 
         var response = await handler.UpdateProfile(userId, model, token);
         return response.Match(
@@ -198,7 +261,9 @@ public sealed class AccountEndpoints : IEndpoint
     {
         var validated = await validator.ValidateAsync(model);
         if (!validated.IsValid)
+        {
             return TypedResults.ValidationProblem(validated.ToDictionary());
+        }
 
         var response = await handler.UpdateProfile(userId, model);
         return response.Match(
@@ -217,12 +282,126 @@ public sealed class AccountEndpoints : IEndpoint
     {
         var validated = await validator.ValidateAsync(model, token);
         if (!validated.IsValid)
+        {
             return TypedResults.ValidationProblem(validated.ToDictionary());
+        }
 
         var response = await handler.LoginAccountHandler(model, token);
         return response.Match(
             data => TypedResults.Ok(data),
             errors => Results.Extensions.Problem(errors)
         );
+    }
+
+    // DELETE: api/account
+    public static async Task<IResult> DeleteAccount(
+        string userId,
+        IDeleteAccountHandler handler,
+        CancellationToken token
+    )
+    {
+        var response = await handler.DeleteAccount(userId, token);
+        return response.Match(
+            data => TypedResults.Ok(data),
+            errors => Results.Extensions.Problem(errors)
+        );
+    }
+
+    // POST: api/account/{userid}/changePassword
+    public static async Task<IResult> ChangePassword(
+        string userId,
+        ChangePasswordRequest model,
+        IChangePasswordHandler handler,
+        IValidator<ChangePasswordRequest> validator,
+        CancellationToken token
+    )
+    {
+        var validated = await validator.ValidateAsync(model, token);
+        if (!validated.IsValid)
+        {
+            return TypedResults.ValidationProblem(validated.ToDictionary());
+        }
+
+        var result = await handler.ChangePassword(userId, model, token);
+
+        return result.Match(
+            data => TypedResults.Ok(data),
+            errors => Results.Extensions.Problem(errors));
+    }
+
+    // POST: api/account/refreshtoken
+    public static async Task<IResult> RefreshToken(
+        RefreshTokenRequest model,
+        IValidator<RefreshTokenRequest> validator,
+        IRefreshTokenHandler handler,
+        CancellationToken token)
+    {
+        var validated = await validator.ValidateAsync(model, token);
+        if (!validated.IsValid)
+        {
+            return TypedResults.ValidationProblem(validated.ToDictionary());
+        }
+
+        var response = await handler.RefreshToken(model, token);
+        return response.Match(
+            data => TypedResults.Ok(data),
+            errors => Results.Extensions.Problem(errors));
+    }
+
+    // POST: api/account/confirmEmail
+    public static async Task<IResult> ConfirmAccount(
+        ConfirmEmailResponse model,
+        IValidator<ConfirmEmailResponse> validator,
+        IConfirmEmailHandler handler,
+        CancellationToken token)
+    {
+        var validated = await validator.ValidateAsync(model, token);
+        if (!validated.IsValid)
+        {
+            return TypedResults.ValidationProblem(validated.ToDictionary());
+        }
+
+        var response = await handler.ConfirmEmail(model);
+        return response.Match(
+            data => TypedResults.Ok(data),
+            errors => Results.Extensions.Problem(errors));
+    }
+
+    // POST: api/account/resendConfirmation
+    public static async Task<IResult> ResendConfirmationEmail(
+        ResendEmailRequest model,
+        IValidator<ResendEmailRequest> validator,
+        IResendEmailHandler handler,
+        CancellationToken token)
+    {
+        var validated = await validator.ValidateAsync(model, token);
+        if (!validated.IsValid)
+        {
+            return TypedResults.ValidationProblem(validated.ToDictionary());
+        }
+
+        var response = await handler.ResendEmail(model, token);
+        return response.Match(
+            data => TypedResults.Ok(data),
+            errors => Results.Extensions.Problem(errors));
+    }
+
+    // POST: api/account/forgotPassword
+    public static async Task<IResult> ForgottenPassword(
+        ForgotPasswordRequest model,
+        IValidator<ForgotPasswordRequest> validator,
+        IForgotPasswordHandler handler,
+        CancellationToken token)
+    {
+        var validated = await validator.ValidateAsync(model, token);
+        if (!validated.IsValid)
+        {
+            return TypedResults.ValidationProblem(validated.ToDictionary());
+        }
+
+        var response = await handler.ForgotPassword(model, token);
+        return response.Match(
+            data => TypedResults.Ok(data),
+            errors => Results.Extensions.Problem(errors));
     }
 }

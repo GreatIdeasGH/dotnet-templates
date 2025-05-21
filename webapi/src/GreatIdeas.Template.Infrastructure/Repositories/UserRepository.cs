@@ -1,9 +1,14 @@
 ﻿using System.Text;
 using GreatIdeas.Template.Application.Common.Params;
 using GreatIdeas.Template.Application.Features.Account;
+using GreatIdeas.Template.Application.Features.Account.ChangePassword;
+using GreatIdeas.Template.Application.Features.Account.ConfirmEmail;
 using GreatIdeas.Template.Application.Features.Account.CreateAccount;
+using GreatIdeas.Template.Application.Features.Account.ForgotPassword;
 using GreatIdeas.Template.Application.Features.Account.GetAccount;
 using GreatIdeas.Template.Application.Features.Account.Login;
+using GreatIdeas.Template.Application.Features.Account.RefreshToken;
+using GreatIdeas.Template.Application.Features.Account.ResendEmail;
 using GreatIdeas.Template.Application.Features.Account.ResetPassword;
 using GreatIdeas.Template.Application.Features.Account.UpdateAccount;
 using GreatIdeas.Template.Application.Features.Account.UpdateProfile;
@@ -29,7 +34,10 @@ internal sealed class UserRepository(
         return await dbContext.Users.FindAsync(userId);
     }
 
-    public async ValueTask<ErrorOr<UserAccountResponse>> GetUserAccountAsync(string userId)
+    public async ValueTask<ErrorOr<UserAccountResponse>> GetUserAccountAsync(
+        string userId,
+        CancellationToken cancellationToken
+    )
     {
         using var activity = ActivitySource.CreateActivity(
             nameof(GetUserAccountAsync),
@@ -37,14 +45,16 @@ internal sealed class UserRepository(
         );
         activity?.Start();
 
-        var user = await dbContext.Users.FindAsync(userId);
+        var user = await dbContext
+            .Users.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
         if (user is null)
         {
             return DomainUserErrors.UserNotFound;
         }
 
         var userRole = await userManager.GetRolesAsync(user);
-        var result = new UserAccountResponse()
+        var result = new UserAccountResponse
         {
             FullName = user.FullName!,
             UserId = user.Id,
@@ -52,7 +62,7 @@ internal sealed class UserRepository(
             PhoneNumber = user.PhoneNumber!,
             IsActive = user.IsActive,
             Username = user.UserName!,
-            Role = userRole[0],
+            Role = userRole[0]
         };
         return result;
     }
@@ -69,7 +79,7 @@ internal sealed class UserRepository(
         {
             var currentUser = await dbContext
                 .Users.Where(x => x.UserName!.ToLower() == request.Username.ToLower())
-                .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (currentUser is null)
             {
@@ -102,6 +112,7 @@ internal sealed class UserRepository(
                 logger.LogError("User account is not active: {UserName}", request.Username);
                 return error;
             }
+
             activity?.Stop();
 
             // Check if password is correct
@@ -125,6 +136,7 @@ internal sealed class UserRepository(
                 );
                 return DomainUserErrors.InvalidLoginCredentials;
             }
+
             passwordActivity?.Stop();
 
             // Validate token and patch user
@@ -133,20 +145,20 @@ internal sealed class UserRepository(
             // Return response
             logger.LogToInfo($"User: {request.Username} logged in successfully.");
 
-            return new LoginResponse()
+            return new LoginResponse
             {
                 UserId = currentUser.Id,
                 AccessToken = tokenResponse.Value.AccessToken,
-                RefreshToken = tokenResponse.Value.RefreshToken!,
+                RefreshToken = tokenResponse.Value.RefreshToken!
             };
         }
         catch (Exception exception)
         {
             return exception.LogCriticalUser(
                 logger,
-                activity: Activity.Current,
-                user: request.Username,
-                message: "Account login failed"
+                Activity.Current,
+                request.Username,
+                "Account login failed"
             );
         }
     }
@@ -204,10 +216,7 @@ internal sealed class UserRepository(
             var result = await userManager.CreateAsync(userEntity, request.Password);
 
             // createsavepoint: create user
-            await transaction.CreateSavepointAsync(
-                "create user",
-                cancellationToken: cancellationToken
-            );
+            await transaction.CreateSavepointAsync("create user", cancellationToken);
 
             if (result.Succeeded)
             {
@@ -221,7 +230,7 @@ internal sealed class UserRepository(
                     userEntity,
                     [
                         new Claim(JwtClaimTypes.Id, $"{userEntity.Id}"),
-                        new Claim(UserClaims.Username, userEntity.UserName!),
+                        new Claim(UserClaims.Username, userEntity.UserName!)
                     ]
                 );
 
@@ -229,10 +238,7 @@ internal sealed class UserRepository(
                 _ = await userManager.AddToRoleAsync(userEntity, request.Role);
 
                 // createsavepoint: add claims
-                await transaction.CreateSavepointAsync(
-                    "add claims",
-                    cancellationToken: cancellationToken
-                );
+                await transaction.CreateSavepointAsync("add claims", cancellationToken);
 
                 // Generate code for confirmation
                 var code = await userManager.GenerateEmailConfirmationTokenAsync(userEntity);
@@ -246,7 +252,7 @@ internal sealed class UserRepository(
                 // Commit transaction
                 await transaction.CommitAsync(cancellationToken);
 
-                return new AccountCreatedResponse(Email: request.Email!, VerificationCode: code);
+                return new AccountCreatedResponse(userEntity.Id, request.Email!, code);
             }
 
             var error = DomainUserErrors.CreationFailed(
@@ -259,12 +265,12 @@ internal sealed class UserRepository(
         catch (Exception exception)
         {
             // Rollback transaction
-            await transaction.RollbackAsync(cancellationToken: cancellationToken);
+            await transaction.RollbackAsync(cancellationToken);
             return exception.LogCriticalUser(
                 logger,
-                activity: activity,
-                user: request.Email!,
-                message: "Account creation failed"
+                activity,
+                request.Email!,
+                "Account creation failed"
             );
         }
     }
@@ -341,7 +347,7 @@ internal sealed class UserRepository(
 
                 var message = "User profile updated successfully.";
                 logger.LogUserInfo(userId, message);
-                OtelUserConstants.AddInfoEvent(userId, message, activity);
+                OtelUserConstants.AddInfoEventWithUserId(userId, message, activity);
 
                 await transaction.CommitAsync();
                 return message;
@@ -356,9 +362,9 @@ internal sealed class UserRepository(
             await transaction.RollbackAsync();
             return exception.LogCriticalUser(
                 logger,
-                activity: activity,
-                user: userId,
-                message: "User profile update failed"
+                activity,
+                userId,
+                "User profile update failed"
             );
         }
     }
@@ -414,9 +420,9 @@ internal sealed class UserRepository(
                 .Where(x =>
                     x.Type
                         is JwtClaimTypes.Name
-                            or JwtClaimTypes.PhoneNumber
-                            or JwtClaimTypes.Email
-                            or UserClaims.Username
+                        or JwtClaimTypes.PhoneNumber
+                        or JwtClaimTypes.Email
+                        or UserClaims.Username
                 )
                 .ToList();
             if (claimsToDelete.Count > 0)
@@ -455,7 +461,7 @@ internal sealed class UserRepository(
 
             var message = "Updated account successfully.";
             logger.LogUserInfo(userId, message);
-            OtelUserConstants.AddInfoEvent(userId, message, activity);
+            OtelUserConstants.AddInfoEventWithUserId(userId, message, activity);
             return message;
         }
 
@@ -484,6 +490,7 @@ internal sealed class UserRepository(
             {
                 return DomainUserErrors.UserNotFound;
             }
+
             await userManager.RemovePasswordAsync(user);
             var result = await userManager.AddPasswordAsync(user, request.NewPassword);
 
@@ -491,7 +498,7 @@ internal sealed class UserRepository(
             {
                 var message = "User password reset successfully.";
                 logger.LogUserInfo(userId, message);
-                OtelUserConstants.AddInfoEvent(userId, message, activity);
+                OtelUserConstants.AddInfoEventWithUserId(userId, message, activity);
                 return message;
             }
 
@@ -505,9 +512,9 @@ internal sealed class UserRepository(
         {
             return exception.LogCriticalUser(
                 logger,
-                activity: activity,
-                user: userId,
-                message: "User password reset failed!"
+                activity,
+                userId,
+                "User password reset failed!"
             );
         }
     }
@@ -524,6 +531,39 @@ internal sealed class UserRepository(
         return users.Any(x => x.Id == userId);
     }
 
+    public async ValueTask<ErrorOr<bool>> DeleteAccountAsync(
+        string userId,
+        CancellationToken cancellationToken
+    )
+    {
+        using var activity = ActivitySource.CreateActivity(
+            nameof(DeleteAccountAsync),
+            ActivityKind.Server
+        );
+        activity?.Start();
+
+        // Get user
+        var existingUser = await dbContext.Users.FindAsync(userId, cancellationToken);
+        if (existingUser is null)
+        {
+            logger.LogUserError(userId, $"Could not find user {userId}");
+            return DomainUserErrors.UserNotFound;
+        }
+
+        dbContext.Users.Remove(existingUser);
+        var result = await dbContext.SaveChangesAsync(cancellationToken);
+
+        if (result > 0)
+        {
+            logger.LogUserInfo(userId, "User account deleted successfully.");
+            return true;
+        }
+
+        var error = DomainUserErrors.UpdateFailed("Could not delete user account");
+        logger.LogUserError(userId, error.Description);
+        return error;
+    }
+
     public async ValueTask<IPagedList<UserAccountResponse>> GetPagedUsersAsync(
         PagingParameters pagingParameters,
         CancellationToken cancellationToken
@@ -536,11 +576,373 @@ internal sealed class UserRepository(
             .ToUsers()
             .ToPagedListAsync(
                 pagingParameters.PageNumber,
-                pageSize: pagingParameters.PageSize,
-                totalSetCount: null,
-                cancellationToken: cancellationToken
+                pagingParameters.PageSize,
+                null,
+                cancellationToken
             );
         return response;
+    }
+
+    public async ValueTask<ErrorOr<string>> ChangePassword(
+        string userId,
+        ChangePasswordRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        // Start activity
+        using var activity = ActivitySource.CreateActivity(
+            nameof(ChangePassword),
+            ActivityKind.Server
+        );
+        activity?.Start();
+
+        try
+        {
+            // Get user
+            var currentUser = await dbContext
+                .Users.Where(x => x.Id == userId)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (currentUser is null)
+            {
+                // Add event
+                logger.NotFound(userId, "User");
+                OtelUserConstants.AddErrorEventById(
+                    userId,
+                    activity,
+                    DomainUserErrors.UserNotFound
+                );
+                return DomainUserErrors.UserNotFound;
+            }
+
+            activity?.Stop();
+
+            // Start activity
+            using var changePasswordActivity = ActivitySource.CreateActivity(
+                "ChangeUserPassword",
+                ActivityKind.Server
+            );
+            changePasswordActivity?.Start();
+
+            var result = await userManager.ChangePasswordAsync(
+                currentUser,
+                request.OldPassword,
+                request.NewPassword
+            );
+            if (result.Succeeded)
+            {
+                logger.LogInformation(
+                    "User {UserId} changed password successfully.",
+                    userId
+                );
+                OtelUserConstants.AddInfoEventWithUserId(
+                    currentUser.Id,
+                    "User changed password successfully.",
+                    activity
+                );
+                return "Password changed successfully.";
+            }
+
+            var error = DomainUserErrors.PasswordChangeFailed(
+                result.Errors.FirstOrDefault()!.Description
+            );
+            logger.LogError("User: {UserId} password change failed.", userId);
+            OtelUserConstants.AddErrorEventById(userId, activity, error);
+            return error;
+        }
+        catch (Exception exception)
+        {
+            return exception.LogCriticalUser(
+                logger,
+                activity,
+                userId,
+                "Password change failed"
+            );
+        }
+    }
+
+    public async ValueTask<ErrorOr<string>> ConfirmEmail(
+        ConfirmEmailResponse request,
+        CancellationToken cancellationToken
+    )
+    {
+        // Start activity
+        using var activity = ActivitySource.CreateActivity(
+            nameof(ConfirmEmail),
+            ActivityKind.Server
+        );
+        activity?.Start();
+        try
+        {
+            // Get user
+            var currentUser = await dbContext
+                .Users.Where(x => x.Id == request.UserId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (currentUser is null)
+            {
+                // Add event
+                logger.NotFound(request.UserId, "User");
+                OtelUserConstants.AddErrorEventById(
+                    request.UserId,
+                    activity,
+                    DomainUserErrors.UserNotFound
+                );
+                return DomainUserErrors.UserNotFound;
+            }
+
+            if (currentUser.EmailConfirmed)
+            {
+                OtelUserConstants.AddInfoEventWithUserId(
+                    request.UserId,
+                    "User has already confirmed account.",
+                    activity
+                );
+                logger.LogWarning("Account already confirmed: {UserId}", request.UserId);
+                return "Account already confirmed. Please login to continue.";
+            }
+
+            // decode code
+            var decoded = Encoding.UTF8.GetString(
+                WebEncoders.Base64UrlDecode(request.ConfirmationCode)
+            );
+
+            // Confirm email
+            var result = await userManager.ConfirmEmailAsync(currentUser, decoded);
+            if (result.Succeeded)
+            {
+                logger.LogInformation(
+                    "User: {UserId} confirmed email successfully.",
+                    request.UserId
+                );
+                OtelUserConstants.AddInfoEventWithUserId(
+                    request.UserId,
+                    "Account confirmed successfully.",
+                    activity
+                );
+                return "Account confirmed successfully.";
+            }
+
+            var error = DomainUserErrors.ConfirmEmailFailed(
+                "Invalid account confirmation code. Please try again."
+            );
+            logger.LogError("User: {UserId} account confirmation failed.", request.UserId);
+            OtelUserConstants.AddErrorEventById(request.UserId, activity, error);
+            return error;
+        }
+        catch (Exception exception)
+        {
+            return exception.LogCriticalUser(
+                logger,
+                activity,
+                request.UserId,
+                "Confirm email failed"
+            );
+        }
+    }
+
+    public async ValueTask<ErrorOr<AccountCreatedResponse>> ResendConfirmEmail(
+        ResendEmailRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        // Start activity
+        using var activity = ActivitySource.CreateActivity(
+            nameof(ResendConfirmEmail),
+            ActivityKind.Server
+        );
+        activity?.Start();
+
+        try
+        {
+            // Get user
+            var currentUser = await dbContext
+                .Users.Where(x => x.Email!.ToLower() == request.Email.ToLower())
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (currentUser is null)
+            {
+                // Add event
+                logger.NotFound(request.Email, "User");
+                OtelUserConstants.AddErrorEventByEmail(
+                    request.Email,
+                    activity,
+                    DomainUserErrors.UserNotFound
+                );
+                return DomainUserErrors.UserNotFound;
+            }
+
+            if (!currentUser.EmailConfirmed)
+            {
+                // Generate code for confirmation
+                var code = await userManager.GenerateEmailConfirmationTokenAsync(currentUser);
+                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+                logger.LogInformation(
+                    "User: {Email} confirmation email sent successfully.",
+                    request.Email
+                );
+                OtelUserConstants.AddInfoEventWithUserId(
+                    currentUser.Id,
+                    "Confirmation email sent successfully.",
+                    activity
+                );
+
+                return new AccountCreatedResponse(
+                    currentUser.Id,
+                    currentUser.Email!,
+                    code
+                );
+            }
+
+            return DomainUserErrors.AlreadyConfirmed;
+        }
+        catch (Exception exception)
+        {
+            return exception.LogCriticalUser(
+                logger,
+                activity,
+                request.Email!,
+                "Confirmation email resend failed"
+            );
+        }
+    }
+
+    public async ValueTask<ErrorOr<RefreshTokenResponse>> RefreshToken(
+        RefreshTokenRequest refreshRequest,
+        CancellationToken cancellationToken
+    )
+    {
+        // Start activity
+        using var activity = ActivitySource.CreateActivity(
+            nameof(RefreshToken),
+            ActivityKind.Server
+        );
+        activity?.Start();
+
+        try
+        {
+            var principal = jwtService.GetPrincipalFromExpiredToken(refreshRequest.AccessToken!);
+
+            var userId = principal.Claims.Single(x => x.Type == JwtClaimTypes.Id).Value;
+            var user = await userManager.FindByIdAsync(userId);
+
+            if (user is null || user.RefreshToken != refreshRequest.RefreshToken)
+            {
+                logger.LogToError("Invalid refresh token");
+                var error = Error.Validation("Invalid refresh token");
+                OtelConstants.AddErrorEvent(activity, error);
+                return error;
+            }
+
+            activity?.Stop();
+
+            // Validate token and patch user
+            var token = await ValidateTokenAndPatchUser(user, cancellationToken);
+            return token;
+        }
+        catch (Exception exception)
+        {
+            return exception.LogCritical(
+                logger,
+                activity,
+                "Token refresh failed",
+                "User"
+            );
+        }
+    }
+
+    public async Task<ErrorOr<ForgottenPasswordResponse>> ForgotPassword(
+        ForgotPasswordRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        // Start activity
+        using var activity = ActivitySource.CreateActivity(
+            nameof(ForgotPassword),
+            ActivityKind.Server
+        );
+        activity?.Start();
+
+        try
+        {
+            // Get user
+            var currentUser = await dbContext
+                .Users.Where(x => x.Email == request.Email)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (currentUser is null)
+            {
+                logger.LogError("Could not find user account: {UserName}", request.Email);
+                OtelUserConstants.AddErrorEventByEmail(
+                    request.Email,
+                    activity,
+                    DomainErrors.NotFound("User")
+                );
+                return DomainErrors.NotFound("User");
+            }
+
+            activity?.Stop();
+
+            // Remove the old password and generate a temporal one
+            using var generateCodeActivity = ActivitySource.CreateActivity(
+                "GeneratePasswordResetToken",
+                ActivityKind.Server
+            );
+            generateCodeActivity?.Start();
+
+            var removePasswordResult = await userManager.RemovePasswordAsync(currentUser);
+            if (!removePasswordResult.Succeeded)
+            {
+                var error = DomainUserErrors.PasswordChangeFailed(
+                    removePasswordResult.Errors.FirstOrDefault()!.Description
+                );
+                logger.LogToError(error.Description);
+                OtelUserConstants.AddErrorEventByEmail(request.Email, activity, error);
+                return DomainUserErrors.PasswordChangeFailed(
+                    "Sorry, we could not reset your password, please try again."
+                );
+            }
+
+            // Generate a temporal password
+            var tempPassword = Guid.NewGuid().ToString().AsSpan()[..8].ToString();
+            var addPasswordResult = await userManager.AddPasswordAsync(currentUser, tempPassword);
+            if (!addPasswordResult.Succeeded)
+            {
+                var error = DomainUserErrors.PasswordChangeFailed(
+                    addPasswordResult.Errors.FirstOrDefault()!.Description
+                );
+                logger.LogToError(error.Description);
+                OtelUserConstants.AddErrorEventByEmail(request.Email!, activity, error);
+                return DomainUserErrors.PasswordChangeFailed(
+                    "Sorry, we could not reset your password, please try again."
+                );
+            }
+
+            logger.LogInformation(
+                "User: {UserId} forgotten password reset successfully.",
+                currentUser.Id
+            );
+            OtelUserConstants.AddInfoEventWithUserId(
+                currentUser.Id,
+                "Forgotten password reset successfully.",
+                activity
+            );
+
+            return new ForgottenPasswordResponse
+            {
+                UserId = currentUser.Id,
+                PasswordResetToken = tempPassword,
+                Email = currentUser.Email!
+            };
+        }
+        catch (Exception exception)
+        {
+            return exception.LogCriticalUser(
+                logger,
+                activity,
+                request.Email!,
+                "Forgot password failed"
+            );
+        }
     }
 
     private async Task<ErrorOr<RefreshTokenResponse>> ValidateTokenAndPatchUser(
@@ -574,7 +976,7 @@ internal sealed class UserRepository(
                 x =>
                     x.SetProperty(u => u.RefreshToken, tokenResponse.RefreshToken)
                         .SetProperty(u => u.RefreshTokenExpiryTime, tokenResponse.Expires),
-                cancellationToken: cancellationToken
+                cancellationToken
             );
 
         if (result <= 0)

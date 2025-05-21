@@ -10,6 +10,7 @@ public interface IGetUserAccountHandler : IApplicationHandler
         CancellationToken cancellationToken
     );
 }
+
 internal sealed class GetUserAccountHandler(
     IUserRepository userRepository,
     ILogger<GetUserAccountHandler> logger
@@ -32,7 +33,7 @@ internal sealed class GetUserAccountHandler(
         // Get user
         try
         {
-            var response = await userRepository.GetUserAccountAsync(userId);
+            var response = await userRepository.GetUserAccountAsync(userId, cancellationToken);
             if (response.IsError)
             {
                 // Add event
@@ -46,9 +47,9 @@ internal sealed class GetUserAccountHandler(
             // Add event
             return exception.LogCriticalUser(
                 logger,
-                activity: activity,
-                user: userId!,
-                message: "Could not fetch user account"
+                activity,
+                userId!,
+                "Could not fetch user account"
             );
         }
     }

@@ -2,7 +2,9 @@
 
 public sealed class EntityPermission
 {
-    public EntityPermission() { }
+    public EntityPermission()
+    {
+    }
 
     public EntityPermission(string name, string value, string groupName, string description)
     {
@@ -12,9 +14,9 @@ public sealed class EntityPermission
         Description = description;
     }
 
-    public string Name { get; set; } = default!;
-    public string Value { get; set; } = default!;
-    public string GroupName { get; set; } = default!;
+    public string Name { get; set; } = null!;
+    public string Value { get; set; } = null!;
+    public string GroupName { get; set; } = null!;
     public string? Description { get; set; }
 
     public override string ToString()
