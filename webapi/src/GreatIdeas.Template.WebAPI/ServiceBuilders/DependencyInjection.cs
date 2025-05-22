@@ -1,6 +1,11 @@
-﻿using GreatIdeas.Template.WebAPI.Endpoints;
+﻿using System.Threading.RateLimiting;
+using GreatIdeas.Template.WebAPI.Endpoints;
 using GreatIdeas.Template.WebAPI.Extensions;
 using GreatIdeas.Template.WebAPI.OpenApi;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
+using Scalar.AspNetCore;
 
 namespace GreatIdeas.Template.WebAPI.ServiceBuilders;
 
@@ -37,8 +42,30 @@ internal static class DependencyInjection
 
         builder.Services.AddSwaggerOpenApiServices();
         builder.Services.AddEndpoints(typeof(IEndpoint).Assembly);
-        builder.Services.AddControllers();
         builder.Services.AddAntiforgery();
+
+        // Rate limiter
+        builder.Services.AddRateLimiter(x =>
+            x.AddFixedWindowLimiter(
+                "fixed",
+                options =>
+                {
+                    options.PermitLimit = 4;
+                    options.Window = TimeSpan.FromSeconds(30);
+                    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    options.QueueLimit = 2;
+                }
+            )
+        );
+
+        // scalar
+        builder.Services.AddOpenApi();
+
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        });
 
         return builder;
     }
@@ -59,6 +86,15 @@ internal static class DependencyInjection
 
         app.UseRouting();
 
+        // Scalar
+        app.MapOpenApi();
+        app.MapScalarApiReference(options =>
+        {
+            options
+                .WithTitle("GreatIdeas.Template.WebAPI")
+                .AddPreferredSecuritySchemes(JwtBearerDefaults.AuthenticationScheme);
+        });
+
         app.UseCors("AllowAll");
 
         app.UseStatusCodePages();
@@ -67,13 +103,14 @@ internal static class DependencyInjection
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.UseRateLimiter();
+
         app.UseAntiforgery();
 
         app.UseApiEndpoints();
-        app.MapControllers();
 
         // OpenAPI
-        app.UseSwaggerOpenApiServices();
+        // app.UseSwaggerOpenApiServices();
 
         return app;
     }

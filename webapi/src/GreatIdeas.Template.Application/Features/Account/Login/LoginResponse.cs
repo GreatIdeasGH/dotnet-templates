@@ -1,4 +1,6 @@
-﻿namespace GreatIdeas.Template.Application.Features.Account.Login;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace GreatIdeas.Template.Application.Features.Account.Login;
 
 public sealed record LoginResponse
 {
@@ -9,6 +11,7 @@ public sealed record LoginResponse
 
 public sealed record LoginRequest
 {
-    public string Username { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
+    [Required] public string Username { get; set; } = string.Empty;
+
+    [Required] public string Password { get; set; } = string.Empty;
 }

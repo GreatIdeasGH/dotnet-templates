@@ -72,7 +72,7 @@ public sealed class AccountEndpoints : IEndpoint
             .MapPut("{userId}", UpdateAccount)
             .WithName(nameof(UpdateAccount))
             .WithDescription("Update user account")
-            .WithSummary("Update staff user account")
+            .WithSummary("Update user account")
             .Produces<ApiResponse>()
             .ProducesCommonForbiddenErrors()
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
