@@ -53,11 +53,6 @@ internal static class DbContextServiceCollection
             }
         }
 
-        builder.Services.AddScoped<
-            IDbContextFactory<ApplicationDbContext>,
-            DbContextFactory<ApplicationDbContext>
-        >();
-
         return builder;
     }
 }

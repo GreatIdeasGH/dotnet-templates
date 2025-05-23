@@ -13,7 +13,6 @@ using GreatIdeas.Template.Application.Features.Account.ResetPassword;
 using GreatIdeas.Template.Application.Features.Account.UpdateAccount;
 using GreatIdeas.Template.Application.Features.Account.UpdateProfile;
 using GreatIdeas.Template.Application.Responses.Authentication;
-using Error = ErrorOr.Error;
 
 namespace GreatIdeas.Template.Infrastructure.Repositories;
 
@@ -62,7 +61,7 @@ internal sealed class UserRepository(
             PhoneNumber = user.PhoneNumber!,
             IsActive = user.IsActive,
             Username = user.UserName!,
-            Role = userRole[0]
+            Role = userRole[0],
         };
         return result;
     }
@@ -149,7 +148,7 @@ internal sealed class UserRepository(
             {
                 UserId = currentUser.Id,
                 AccessToken = tokenResponse.Value.AccessToken,
-                RefreshToken = tokenResponse.Value.RefreshToken!
+                RefreshToken = tokenResponse.Value.RefreshToken!,
             };
         }
         catch (Exception exception)
@@ -230,7 +229,7 @@ internal sealed class UserRepository(
                     userEntity,
                     [
                         new Claim(JwtClaimTypes.Id, $"{userEntity.Id}"),
-                        new Claim(UserClaims.Username, userEntity.UserName!)
+                        new Claim(UserClaims.Username, userEntity.UserName!),
                     ]
                 );
 
@@ -420,9 +419,9 @@ internal sealed class UserRepository(
                 .Where(x =>
                     x.Type
                         is JwtClaimTypes.Name
-                        or JwtClaimTypes.PhoneNumber
-                        or JwtClaimTypes.Email
-                        or UserClaims.Username
+                            or JwtClaimTypes.PhoneNumber
+                            or JwtClaimTypes.Email
+                            or UserClaims.Username
                 )
                 .ToList();
             if (claimsToDelete.Count > 0)
@@ -569,17 +568,34 @@ internal sealed class UserRepository(
         CancellationToken cancellationToken
     )
     {
-        //TODO: Add role to users
+        // Fetch users and include their roles
         var users = FilterUsers(pagingParameters);
 
-        var response = await users
-            .ToUsers()
-            .ToPagedListAsync(
-                pagingParameters.PageNumber,
-                pagingParameters.PageSize,
-                null,
-                cancellationToken
+        var userList = await users.ToListAsync(cancellationToken);
+
+        var userAccountResponses = new List<UserAccountResponse>();
+
+        foreach (var user in userList)
+        {
+            var roles = await userManager.GetRolesAsync(user);
+            userAccountResponses.Add(
+                new UserAccountResponse
+                {
+                    UserId = user.Id,
+                    Email = user.Email!,
+                    FullName = user.FullName,
+                    Username = user.UserName!,
+                    PhoneNumber = user.PhoneNumber!,
+                    IsActive = user.IsActive,
+                    Role = roles.FirstOrDefault() ?? string.Empty,
+                }
             );
+        }
+
+        var response = await userAccountResponses
+            .AsQueryable()
+            .ToPagedListAsync(pagingParameters.PageNumber, pagingParameters.PageSize);
+
         return response;
     }
 
@@ -630,10 +646,7 @@ internal sealed class UserRepository(
             );
             if (result.Succeeded)
             {
-                logger.LogInformation(
-                    "User {UserId} changed password successfully.",
-                    userId
-                );
+                logger.LogInformation("User {UserId} changed password successfully.", userId);
                 OtelUserConstants.AddInfoEventWithUserId(
                     currentUser.Id,
                     "User changed password successfully.",
@@ -651,12 +664,7 @@ internal sealed class UserRepository(
         }
         catch (Exception exception)
         {
-            return exception.LogCriticalUser(
-                logger,
-                activity,
-                userId,
-                "Password change failed"
-            );
+            return exception.LogCriticalUser(logger, activity, userId, "Password change failed");
         }
     }
 
@@ -787,11 +795,7 @@ internal sealed class UserRepository(
                     activity
                 );
 
-                return new AccountCreatedResponse(
-                    currentUser.Id,
-                    currentUser.Email!,
-                    code
-                );
+                return new AccountCreatedResponse(currentUser.Id, currentUser.Email!, code);
             }
 
             return DomainUserErrors.AlreadyConfirmed;
@@ -842,12 +846,7 @@ internal sealed class UserRepository(
         }
         catch (Exception exception)
         {
-            return exception.LogCritical(
-                logger,
-                activity,
-                "Token refresh failed",
-                "User"
-            );
+            return exception.LogCritical(logger, activity, "Token refresh failed", "User");
         }
     }
 
@@ -931,7 +930,7 @@ internal sealed class UserRepository(
             {
                 UserId = currentUser.Id,
                 PasswordResetToken = tempPassword,
-                Email = currentUser.Email!
+                Email = currentUser.Email!,
             };
         }
         catch (Exception exception)

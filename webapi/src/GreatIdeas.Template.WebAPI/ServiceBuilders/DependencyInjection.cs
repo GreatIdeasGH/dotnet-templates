@@ -110,7 +110,7 @@ internal static class DependencyInjection
         app.UseApiEndpoints();
 
         // OpenAPI
-        // app.UseSwaggerOpenApiServices();
+        // app.UseSwaggerOpenApiServices()
 
         return app;
     }
