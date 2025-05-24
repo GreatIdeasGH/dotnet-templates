@@ -1,18 +1,21 @@
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Net;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Serilog;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
+using System.Net;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace GreatIdeas.Template.WebAPI.ServiceBuilders;
+namespace GreatIdeas.Template.WebAPI.Extensions;
 
-public static class ApplicationExceptionHandlers
+public static class ExceptionHandlerExtension
 {
     public static void UseCustomExceptionHandlers(this WebApplication app)
     {
+        //app.MapGet("/error", ErrorHandler).ExcludeFromDescription()
+
         app.UseExceptionHandler(exceptionHandlerApp =>
         {
             exceptionHandlerApp.Run(async context =>
@@ -101,6 +104,45 @@ public static class ApplicationExceptionHandlers
             });
         });
     }
+
+    public static ProblemHttpResult ErrorHandler(HttpContext httpContext)
+    {
+        using var activity = Activity.Current;
+        var exception = httpContext.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+        var problemDetailsExtensions = new Dictionary<string, object?>
+        {
+            { "traceId", Activity.Current?.Id },
+            { "errorCodes", new[] { exception?.GetType().Name } },
+        };
+
+        (HttpStatusCode statusCode, string message) = exception switch
+        {
+            ValidationException => (HttpStatusCode.BadRequest, exception.Message),
+            PostgresException => (HttpStatusCode.UnprocessableEntity, exception.Message),
+            DbUpdateException => (HttpStatusCode.UnprocessableEntity, exception.Message),
+            BadHttpRequestException => (HttpStatusCode.BadRequest, exception.Message),
+            InvalidOperationException
+                => (
+                    HttpStatusCode.BadRequest,
+                    "Could not complete the operation. Please try again later."
+                ),
+            TaskCanceledException => (HttpStatusCode.BadRequest, "The request was cancelled."),
+            FormatException => (HttpStatusCode.BadRequest, exception.Message),
+            NpgsqlException => (HttpStatusCode.UnprocessableEntity, exception.Message),
+            FileLoadException => (HttpStatusCode.UnprocessableEntity, exception.Message),
+            _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
+        };
+
+        // log exception
+        Log.Fatal(exception, message!);
+
+        return TypedResults.Problem(
+            detail: message,
+            statusCode: (int)statusCode,
+            extensions: problemDetailsExtensions
+        );
+    }
 }
 
 public class CustomExceptionHandler : IExceptionHandler
@@ -129,3 +171,5 @@ public class CustomExceptionHandler : IExceptionHandler
         return ValueTask.FromResult(false);
     }
 }
+
+

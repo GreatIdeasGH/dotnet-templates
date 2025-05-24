@@ -1,4 +1,5 @@
-﻿using GreatIdeas.Template.WebAPI.OpenApi;
+﻿using GreatIdeas.Template.WebAPI.Extensions;
+using GreatIdeas.Template.WebAPI.OpenApi;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
@@ -56,8 +57,12 @@ internal static class DependencyInjection
             )
         );
 
-        // scalar
-        builder.Services.AddOpenApi();
+        // Register Microsoft OpenAPI and configure it to use Scalar transformers
+        builder.Services.AddOpenApi(options =>
+        {
+            // Register Scalar transformers
+            //options.AddScalarTransformers()
+        });
 
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
@@ -89,11 +94,15 @@ internal static class DependencyInjection
 
         // Scalar
         app.MapOpenApi();
-        app.MapScalarApiReference(options =>
+        app.MapScalarApiReference("api/docs", options =>
         {
             options
                 .WithTitle("GreatIdeas.Template.WebAPI")
-                .AddPreferredSecuritySchemes(JwtBearerDefaults.AuthenticationScheme);
+                .AddPreferredSecuritySchemes(JwtBearerDefaults.AuthenticationScheme)
+                .AddHttpAuthentication(JwtBearerDefaults.AuthenticationScheme, opt =>
+                {
+                    opt.Description = "GreatIdeas.Template.WebAPI";
+                });
         });
 
         app.UseCors("AllowAll");

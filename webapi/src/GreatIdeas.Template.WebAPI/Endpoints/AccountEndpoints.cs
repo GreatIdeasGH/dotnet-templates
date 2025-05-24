@@ -61,8 +61,8 @@ public sealed class AccountEndpoints : IEndpoint
         group
             .MapPatch("{userId}/profile", UpdateProfile)
             .WithName(nameof(UpdateProfile))
-            .WithDescription("Update student user account")
-            .WithSummary("Update student user account")
+            .WithDescription("Update user account profile")
+            .WithSummary("Update user profile")
             .Produces<ApiResponse>()
             .ProducesCommonForbiddenErrors()
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
@@ -114,7 +114,7 @@ public sealed class AccountEndpoints : IEndpoint
         group.MapPost("{userId}/changePassword", ChangePassword)
             .WithName(nameof(ChangePassword))
             .WithDescription("Change user password by userId")
-            .WithSummary("Change user password by userId")
+            .WithSummary("Change user password")
             .Produces<ApiResponse>()
             .ProducesCommonErrors()
             .RequireAuthorization(AppPermissions.Account.Manage);

@@ -20,6 +20,12 @@ public static class ApiEndpointsRegistration
         {
             endpoint.MapEndpoints(app);
         }
+
+        const string description = "You're running GreatIdeas.Template.WebAPI. Please use /api/docs to see OpenAPI documentation.";
+
+        // Map root
+        app.MapGet("/", () => description).ExcludeFromDescription();
+        app.MapGet("/api", () => description).ExcludeFromDescription();
     }
 
     /// <summary>
