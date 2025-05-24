@@ -21,15 +21,7 @@ public static class ExceptionExtensions
         else
         {
             logger.LogToCritical(exception, message);
-
-#if !DEBUG
-            SendNotification
-                .NotifyAdminWithExceptionLog(
-                    exception,
-                    ExceptionNotifications.UrgentBugNotification.ToString().SplitCamelCase()
-                )
-                .ConfigureAwait(false);
-#endif
+            // Send notification to admin
         }
 
         OtelUserConstants.AddExceptionEvent(user, activity, exception);
@@ -74,15 +66,7 @@ public static class ExceptionExtensions
         else
         {
             logger.LogToCritical(exception, message);
-
-#if !DEBUG
-            SendNotification
-                .NotifyAdminWithExceptionLog(
-                    exception,
-                    ExceptionNotifications.UrgentBugNotification.ToString().SplitCamelCase()
-                )
-                .ConfigureAwait(false);
-#endif
+            // Send notification to admin
         }
 
         OtelConstants.AddExceptionEvent(activity, exception);
