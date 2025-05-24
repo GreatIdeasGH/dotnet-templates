@@ -10,7 +10,6 @@
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
-<!--        <PackageReference Include="Microsoft.Identity.Web" />-->
         <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
             <PrivateAssets>all</PrivateAssets>

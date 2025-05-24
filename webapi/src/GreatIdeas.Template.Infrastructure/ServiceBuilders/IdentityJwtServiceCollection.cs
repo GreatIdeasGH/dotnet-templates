@@ -1,12 +1,12 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Text;
-using GreatIdeas.Template.Application.ServiceBuilders;
+﻿using GreatIdeas.Template.Application.ServiceBuilders;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace GreatIdeas.Template.Infrastructure.ServiceBuilders;
 
-internal static class JwtServiceCollection
+internal static class IdentityJwtServiceCollection
 {
     public static WebApplicationBuilder AddJwtAuthService(
         this WebApplicationBuilder builder,

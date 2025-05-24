@@ -1,5 +1,4 @@
-﻿using System.Text;
-using GreatIdeas.Template.Application.Common.Params;
+﻿using GreatIdeas.Template.Application.Common.Params;
 using GreatIdeas.Template.Application.Features.Account;
 using GreatIdeas.Template.Application.Features.Account.ChangePassword;
 using GreatIdeas.Template.Application.Features.Account.ConfirmEmail;
@@ -13,6 +12,7 @@ using GreatIdeas.Template.Application.Features.Account.ResetPassword;
 using GreatIdeas.Template.Application.Features.Account.UpdateAccount;
 using GreatIdeas.Template.Application.Features.Account.UpdateProfile;
 using GreatIdeas.Template.Application.Responses.Authentication;
+using System.Text;
 
 namespace GreatIdeas.Template.Infrastructure.Repositories;
 
@@ -76,8 +76,8 @@ internal sealed class UserRepository(
         activity?.Start();
         try
         {
-            var currentUser = await dbContext
-                .Users.Where(x => x.UserName!.ToLower() == request.Username.ToLower())
+            var currentUser = await dbContext.Users
+                .Where(x => EF.Functions.ILike(x.UserName!, $"%{request.Username.Trim()}%"))
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (currentUser is null)
@@ -406,7 +406,8 @@ internal sealed class UserRepository(
             return errorPhoneNumber;
         }
 
-        existingUser!.Update(request.FullName, request.PhoneNumber, request.IsActive);
+        // Update personal details
+        existingUser!.Update(request.FullName, request.PhoneNumber);
         dbContext.Entry(existingUser).State = EntityState.Modified;
         var result = await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -850,7 +851,7 @@ internal sealed class UserRepository(
         }
     }
 
-    public async Task<ErrorOr<ForgottenPasswordResponse>> ForgotPassword(
+    public async ValueTask<ErrorOr<ForgottenPasswordResponse>> ForgotPassword(
         ForgotPasswordRequest request,
         CancellationToken cancellationToken
     )
@@ -944,7 +945,129 @@ internal sealed class UserRepository(
         }
     }
 
-    private async Task<ErrorOr<RefreshTokenResponse>> ValidateTokenAndPatchUser(
+    public async ValueTask<ErrorOr<string>> DeactivateAccountAsync(
+        string userId,
+        CancellationToken cancellationToken
+    )
+    {
+        // Start activity
+        using var activity = ActivitySource.CreateActivity(
+            nameof(DeactivateAccountAsync),
+            ActivityKind.Server
+        );
+        activity?.Start();
+
+        try
+        {
+            // Get user
+            var currentUser = await dbContext
+                .Users.Where(x => x.Id == userId)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (currentUser is null)
+            {
+                logger.LogError("Could not find user account: {UserId}", userId);
+                OtelUserConstants.AddErrorEventById(
+                    userId,
+                    activity,
+                    DomainErrors.NotFound("User")
+                );
+                return DomainErrors.NotFound("User");
+            }
+
+            // Check if user is admin and if admin count is more than 1
+            var userRoles = await userManager.GetRolesAsync(currentUser);
+            if (userRoles.Contains(UserRoles.Admin))
+            {
+                var adminUsers = await userManager.GetUsersInRoleAsync(UserRoles.Admin);
+                if (adminUsers.Count <= 1)
+                {
+                    var error = DomainUserErrors.UpdateFailed("Cannot deactivate the only admin account.");
+                    logger.LogUserError(userId, error.Description);
+                    OtelUserConstants.AddErrorEventById(userId, activity, error);
+                    return error;
+                }
+            }
+
+            // Deactivate account
+            currentUser!.DeactivateAccount();
+            dbContext.Entry(currentUser).State = EntityState.Modified;
+            var result = await dbContext.SaveChangesAsync(cancellationToken);
+
+            if (result > 0)
+            {
+                return "User account deactivated successfully.";
+            }
+
+            return DomainUserErrors.UpdateFailed(
+                "Sorry, account could be deactivated. Please again later."
+            );
+        }
+        catch (Exception exception)
+        {
+            return exception.LogCriticalUser(
+                logger,
+                activity,
+                userId,
+                "Account could not be deactivated"
+            );
+        }
+    }
+
+    public async ValueTask<ErrorOr<string>> ActivateAccountAsync(
+        string userId,
+        CancellationToken cancellationToken
+    )
+    {
+        // Start activity
+        using var activity = ActivitySource.CreateActivity(
+            nameof(ActivateAccountAsync),
+            ActivityKind.Server
+        );
+        activity?.Start();
+
+        try
+        {
+            // Get user
+            var currentUser = await dbContext
+                .Users.Where(x => x.Id == userId)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (currentUser is null)
+            {
+                logger.LogError("Could not find user account: {UserId}", userId);
+                OtelUserConstants.AddErrorEventById(
+                    userId,
+                    activity,
+                    DomainErrors.NotFound("User")
+                );
+                return DomainErrors.NotFound("User");
+            }
+
+            // Activate account
+            currentUser!.ActivateAccount();
+            dbContext.Entry(currentUser).State = EntityState.Modified;
+            var result = await dbContext.SaveChangesAsync(cancellationToken);
+
+            if (result > 0)
+            {
+                return "User account activated successfully.";
+            }
+
+            return DomainUserErrors.UpdateFailed(
+                "Sorry, account could be activated. Please again later."
+            );
+        }
+        catch (Exception exception)
+        {
+            return exception.LogCriticalUser(
+                logger,
+                activity,
+                userId,
+                "Account could not be activated"
+            );
+        }
+    }
+
+    private async ValueTask<ErrorOr<RefreshTokenResponse>> ValidateTokenAndPatchUser(
         ApplicationUser currentUser,
         CancellationToken cancellationToken
     )

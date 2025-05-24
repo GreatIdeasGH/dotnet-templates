@@ -24,12 +24,6 @@ public sealed class ApplicationUser : IdentityUser
         PhoneNumber = phoneNumber.Trim();
     }
 
-    public void Update(string fullName, string phoneNumber, bool isActive)
-    {
-        FullName = fullName.Trim();
-        PhoneNumber = phoneNumber.Trim();
-        IsActive = isActive;
-    }
 } //end ApplicationUser
 
 //end namespace Entities

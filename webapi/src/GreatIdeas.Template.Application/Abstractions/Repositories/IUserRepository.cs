@@ -57,8 +57,11 @@ public interface IUserRepository
 
     ValueTask<ErrorOr<bool>> DeleteAccountAsync(string userId, CancellationToken cancellationToken);
 
-    ValueTask<ErrorOr<string>> ChangePassword(string userId, ChangePasswordRequest request,
-        CancellationToken cancellationToken);
+    ValueTask<ErrorOr<string>> ChangePassword(
+        string userId,
+        ChangePasswordRequest request,
+        CancellationToken cancellationToken
+    );
 
     ValueTask<ErrorOr<string>> ConfirmEmail(
         ConfirmEmailResponse request,
@@ -75,8 +78,18 @@ public interface IUserRepository
         CancellationToken cancellationToken
     );
 
-    Task<ErrorOr<ForgottenPasswordResponse>> ForgotPassword(
+    ValueTask<ErrorOr<ForgottenPasswordResponse>> ForgotPassword(
         ForgotPasswordRequest request,
+        CancellationToken cancellationToken
+    );
+
+    ValueTask<ErrorOr<string>> DeactivateAccountAsync(
+        string userId,
+        CancellationToken cancellationToken
+    );
+
+    ValueTask<ErrorOr<string>> ActivateAccountAsync(
+        string userId,
         CancellationToken cancellationToken
     );
 }

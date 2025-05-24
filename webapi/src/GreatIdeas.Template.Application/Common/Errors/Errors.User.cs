@@ -60,23 +60,23 @@ public static class DomainUserErrors
     public static Error RoleNotFound { get; } =
         Error.NotFound(code: _roleNotFoundCode, description: "Role not found.");
 
-    public static Error RefreshTokenUpdateError(string error) =>
-        Error.Custom(type: 401, code: "User.RefreshTokenUpdateFailed", description: error);
+    public static Error RefreshTokenUpdateError(string errorMessage) =>
+        Error.Custom(type: 401, code: "User.RefreshTokenUpdateFailed", description: errorMessage);
 
-    public static Error PasswordChangeFailed(string error) =>
-        Error.Failure(code: "User.PasswordChangeFailed", description: error);
+    public static Error PasswordChangeFailed(string errorMessage) =>
+        Error.Failure(code: "User.PasswordChangeFailed", description: errorMessage);
 
-    public static Error ConfirmEmailFailed(string error) =>
-        Error.Failure(code: "User.EmailConfirmationFailed", description: error);
+    public static Error ConfirmEmailFailed(string errorMessage) =>
+        Error.Failure(code: "User.EmailConfirmationFailed", description: errorMessage);
 
     public static Error DeleteFailed(string errorMessage) =>
         Error.Failure(code: "User.DeleteFailed", description: errorMessage);
 
-    public static Error CreationFailed(string error) =>
-        Error.Failure(code: _userCreationFailedCode, description: error);
+    public static Error CreationFailed(string errorMessage) =>
+        Error.Failure(code: _userCreationFailedCode, description: errorMessage);
 
-    public static Error UpdateFailed(string error) =>
-        Error.Failure(code: _userUpdateFailedCode, description: error);
+    public static Error UpdateFailed(string errorMessage) =>
+        Error.Failure(code: _userUpdateFailedCode, description: errorMessage);
 
     public static Error SubscriptionExpired =>
         Error.Custom(

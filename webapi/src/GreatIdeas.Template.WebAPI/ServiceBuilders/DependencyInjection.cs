@@ -1,11 +1,9 @@
-﻿using System.Threading.RateLimiting;
-using GreatIdeas.Template.WebAPI.Endpoints;
-using GreatIdeas.Template.WebAPI.Extensions;
-using GreatIdeas.Template.WebAPI.OpenApi;
+﻿using GreatIdeas.Template.WebAPI.OpenApi;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Scalar.AspNetCore;
+using System.Threading.RateLimiting;
 
 namespace GreatIdeas.Template.WebAPI.ServiceBuilders;
 
@@ -41,7 +39,7 @@ internal static class DependencyInjection
         });
 
         builder.Services.AddSwaggerOpenApiServices();
-        builder.Services.AddEndpoints(typeof(IEndpoint).Assembly);
+
         builder.Services.AddAntiforgery();
 
         // Rate limiter
@@ -66,6 +64,9 @@ internal static class DependencyInjection
             options.ForwardedHeaders =
                 ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
         });
+
+        // Register WebAPI endpoint interfaces. 
+        builder.Services.AddWebAPIEndpoints();
 
         return builder;
     }
@@ -107,7 +108,8 @@ internal static class DependencyInjection
 
         app.UseAntiforgery();
 
-        app.UseApiEndpoints();
+        // Map endpoints
+        app.MapWebAPIEndpoints();
 
         // OpenAPI
         // app.UseSwaggerOpenApiServices()

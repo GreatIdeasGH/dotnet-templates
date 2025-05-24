@@ -2,6 +2,7 @@ using FluentValidation;
 using GreatIdeas.PagedList;
 using GreatIdeas.Template.Application.Authorizations.PolicyDefinitions;
 using GreatIdeas.Template.Application.Common.Params;
+using GreatIdeas.Template.Application.Features.Account.ActivateAccount;
 using GreatIdeas.Template.Application.Features.Account.ChangePassword;
 using GreatIdeas.Template.Application.Features.Account.ConfirmEmail;
 using GreatIdeas.Template.Application.Features.Account.CreateAccount;
@@ -23,7 +24,7 @@ public sealed class AccountEndpoints : IEndpoint
 {
     public void MapEndpoints(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ApiRoutes.AccountEndpoint).WithTags("accounts").WithOpenApi();
+        var group = app.MapGroup(ApiRouteNames.AccountEndpoint).WithTags("accounts").WithOpenApi();
 
         // GET: api/accounts/{userId}
         group
@@ -148,6 +149,22 @@ public sealed class AccountEndpoints : IEndpoint
             .WithSummary("Forgotten Password")
             .Produces<ApiResponse>()
             .ProducesCommonErrors();
+
+        group.MapPost("{userId}/activate", ActivateAccount)
+            .WithName(nameof(ActivateAccount))
+            .WithDescription("Activate the user account")
+            .WithSummary("Activate account")
+            .Produces<ApiResponse>()
+            .ProducesCommonErrors()
+            .RequireAuthorization(AppPermissions.Account.Manage);
+
+        group.MapPost("{userId}/deactivate", DeactivateAccount)
+            .WithName(nameof(DeactivateAccount))
+            .WithDescription("Deactivate the user account")
+            .WithSummary("Deactivate account")
+            .Produces<ApiResponse>()
+            .ProducesCommonErrors()
+            .RequireAuthorization(AppPermissions.Account.Manage);
     }
 
     // GET: api/account/{userId}
@@ -400,6 +417,30 @@ public sealed class AccountEndpoints : IEndpoint
         }
 
         var response = await handler.ForgotPassword(model, token);
+        return response.Match(
+            data => TypedResults.Ok(data),
+            errors => Results.Extensions.Problem(errors));
+    }
+
+    // POST: api/account/{userId}/activate
+    public static async Task<IResult> ActivateAccount(
+        string userId,
+        IActivateAccountHandler handler,
+        CancellationToken token)
+    {
+        var response = await handler.DeactivateAccount(userId, token);
+        return response.Match(
+            data => TypedResults.Ok(data),
+            errors => Results.Extensions.Problem(errors));
+    }
+
+    // POST: api/account/{userId}/deactivate
+    public static async Task<IResult> DeactivateAccount(
+        string userId,
+        IDeactivateAccountHandler handler,
+        CancellationToken token)
+    {
+        var response = await handler.DeactivateAccount(userId, token);
         return response.Match(
             data => TypedResults.Ok(data),
             errors => Results.Extensions.Problem(errors));

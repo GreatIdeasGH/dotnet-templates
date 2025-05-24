@@ -25,7 +25,8 @@
     "sources": [
         {
             "exclude": [
-                ".idea/**/*"
+                ".idea/**/*",
+                "src/GreatIdeas.Template.API/obj/**/*"
             ]
         }
     ]

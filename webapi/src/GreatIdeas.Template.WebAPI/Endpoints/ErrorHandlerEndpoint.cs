@@ -1,16 +1,32 @@
-﻿using System.Diagnostics;
-using System.Net;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Serilog;
+using System.Diagnostics;
+using System.Net;
 
 namespace GreatIdeas.Template.WebAPI.Endpoints;
 
 public static class ErrorHandlerEndpoint
 {
-    public static IResult MapErrorHandler(HttpContext httpContext)
+    public static void UseApiEndpoints(this WebApplication app)
+    {
+        app.MapGroup("/")
+            .WithOpenApi()
+            .MapGet(
+                "/",
+                () =>
+                    "You're running GreatIdeas.Template.WebAPI. Please use /docs to see Swagger API documentation."
+            )
+            .ExcludeFromDescription();
+
+        app.MapGet("/error", ErrorHandler).ExcludeFromDescription();
+
+
+    }
+
+    private static IResult ErrorHandler(HttpContext httpContext)
     {
         using var activity = Activity.Current;
         var exception = httpContext.Features.Get<IExceptionHandlerFeature>()?.Error;
