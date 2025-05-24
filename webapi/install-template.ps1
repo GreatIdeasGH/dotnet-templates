@@ -1,0 +1,1 @@
+dotnet new install GreatIdeas.Templates.WebAPI --force .
