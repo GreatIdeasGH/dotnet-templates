@@ -26,6 +26,16 @@ public sealed class AccountEndpoints : IEndpoint
     {
         var group = app.MapGroup(ApiRouteNames.AccountEndpoint).WithTags("accounts").WithOpenApi();
 
+        // POST: api/account/login
+        group
+            .MapPost("login", LoginAccount)
+            .WithName(nameof(LoginAccount))
+            .WithDescription("Login to the application with valid credentials")
+            .WithSummary("Login to the application")
+            .Produces<LoginResponse>()
+            .Produces<ApiValidationResponse>(StatusCodes.Status400BadRequest)
+            .ProducesCommonErrors();
+
         // GET: api/accounts/{userId}
         group
             .MapGet("{userId}", GetAccount)
@@ -57,9 +67,9 @@ public sealed class AccountEndpoints : IEndpoint
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
             .RequireAuthorization(AppPermissions.Account.Manage);
 
-        // PATCH: api/accounts/{userId}/profile
+        // UPDATE: api/accounts/{userId}/profile
         group
-            .MapPatch("{userId}/profile", UpdateProfile)
+            .MapPut("{userId}/profile", UpdateProfile)
             .WithName(nameof(UpdateProfile))
             .WithDescription("Update user account profile")
             .WithSummary("Update user profile")
@@ -79,9 +89,9 @@ public sealed class AccountEndpoints : IEndpoint
             .Produces<ApiErrorResponse>(StatusCodes.Status409Conflict)
             .RequireAuthorization(AppPermissions.Account.Manage);
 
-        // PUT: api/accounts/{userId}/resetPassword
+        // POST: api/accounts/{userId}/resetPassword
         group
-            .MapPatch("{userId}/resetPassword", ResetPassword)
+            .MapPost("{userId}/resetPassword", ResetPassword)
             .WithName(nameof(ResetPassword))
             .WithDescription("Reset user password")
             .WithSummary("Reset user password")
@@ -89,29 +99,9 @@ public sealed class AccountEndpoints : IEndpoint
             .ProducesCommonForbiddenErrors()
             .RequireAuthorization(AppPermissions.Account.View);
 
-        // POST: api/account/login
-        group
-            .MapPost("login", LoginAccount)
-            .WithName(nameof(LoginAccount))
-            .WithDescription("Login to the application with valid credentials")
-            .WithSummary("Login to the application")
-            .Produces<LoginResponse>()
-            .Produces<ApiValidationResponse>(StatusCodes.Status400BadRequest)
-            .ProducesCommonErrors();
-
-        // DELETE: api/account
-        group
-            .MapDelete("{userId}", DeleteAccount)
-            .WithName(nameof(DeleteAccount))
-            .WithDescription("Delete user account")
-            .WithSummary("Delete user account")
-            .Produces<ApiResponse>()
-            .Produces<ApiValidationResponse>(StatusCodes.Status400BadRequest)
-            .ProducesCommonErrors()
-            .RequireAuthorization(AppPermissions.Account.Delete);
-
         // POST: api/account/{userid}/changePassword
-        group.MapPost("{userId}/changePassword", ChangePassword)
+        group
+            .MapPost("{userId}/changePassword", ChangePassword)
             .WithName(nameof(ChangePassword))
             .WithDescription("Change user password by userId")
             .WithSummary("Change user password")
@@ -120,7 +110,8 @@ public sealed class AccountEndpoints : IEndpoint
             .RequireAuthorization(AppPermissions.Account.Manage);
 
         // POST: api/account/refreshtoken
-        group.MapPost("refreshToken", RefreshToken)
+        group
+            .MapPost("refreshToken", RefreshToken)
             .WithName(nameof(RefreshToken))
             .WithDescription("Refresh token for a logged in user")
             .WithSummary("Refresh token")
@@ -128,29 +119,36 @@ public sealed class AccountEndpoints : IEndpoint
             .ProducesCommonErrors()
             .RequireAuthorization();
 
-
-        group.MapPost("confirmAccount", ConfirmAccount)
+        // POST: api/account/confirmAccount
+        group
+            .MapPost("confirmAccount", ConfirmAccount)
             .WithName(nameof(ConfirmAccount))
             .WithDescription("Confirm the account of the user")
             .WithSummary("Confirm account")
             .Produces<ApiResponse>()
             .ProducesCommonErrors();
 
-        group.MapPost("resendConfirmation", ResendConfirmationEmail)
+        // POST: api/account/resendConfirmation
+        group
+            .MapPost("resendConfirmation", ResendConfirmationEmail)
             .WithName(nameof(ResendConfirmationEmail))
             .WithDescription("Resend the confirmation to the email")
             .WithSummary("Resend confirmation")
             .Produces<ApiResponse>()
             .ProducesCommonErrors();
 
-        group.MapPost("forgotPassword", ForgottenPassword)
+        // POST: api/account/forgotPassword
+        group
+            .MapPost("forgotPassword", ForgottenPassword)
             .WithName(nameof(ForgottenPassword))
             .WithDescription("Send a forgotten password confirmation to user")
             .WithSummary("Forgotten Password")
             .Produces<ApiResponse>()
             .ProducesCommonErrors();
 
-        group.MapPost("{userId}/activate", ActivateAccount)
+        //POST: api/account/{userId}/activate
+        group
+            .MapPost("{userId}/activate", ActivateAccount)
             .WithName(nameof(ActivateAccount))
             .WithDescription("Activate the user account")
             .WithSummary("Activate account")
@@ -158,12 +156,24 @@ public sealed class AccountEndpoints : IEndpoint
             .ProducesCommonErrors()
             .RequireAuthorization(AppPermissions.Account.Manage);
 
-        group.MapPost("{userId}/deactivate", DeactivateAccount)
+        // POST: api/account/{userId}/deactivate
+        group
+            .MapPost("{userId}/deactivate", DeactivateAccount)
             .WithName(nameof(DeactivateAccount))
             .WithDescription("Deactivate the user account")
             .WithSummary("Deactivate account")
             .Produces<ApiResponse>()
             .ProducesCommonErrors()
+            .RequireAuthorization(AppPermissions.Account.Manage);
+
+        // DELETE: api/account/{userId}
+        group
+            .MapDelete("{userId}", DeleteAccount)
+            .WithName(nameof(DeleteAccount))
+            .WithDescription("Delete user account")
+            .WithSummary("Delete user account")
+            .Produces<ApiResponse>()
+            .ProducesCommonForbiddenErrors()
             .RequireAuthorization(AppPermissions.Account.Manage);
     }
 
@@ -343,7 +353,8 @@ public sealed class AccountEndpoints : IEndpoint
 
         return result.Match(
             data => TypedResults.Ok(data),
-            errors => Results.Extensions.Problem(errors));
+            errors => Results.Extensions.Problem(errors)
+        );
     }
 
     // POST: api/account/refreshtoken
@@ -351,7 +362,8 @@ public sealed class AccountEndpoints : IEndpoint
         RefreshTokenRequest model,
         IValidator<RefreshTokenRequest> validator,
         IRefreshTokenHandler handler,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         var validated = await validator.ValidateAsync(model, token);
         if (!validated.IsValid)
@@ -362,7 +374,8 @@ public sealed class AccountEndpoints : IEndpoint
         var response = await handler.RefreshToken(model, token);
         return response.Match(
             data => TypedResults.Ok(data),
-            errors => Results.Extensions.Problem(errors));
+            errors => Results.Extensions.Problem(errors)
+        );
     }
 
     // POST: api/account/confirmEmail
@@ -370,7 +383,8 @@ public sealed class AccountEndpoints : IEndpoint
         ConfirmEmailResponse model,
         IValidator<ConfirmEmailResponse> validator,
         IConfirmEmailHandler handler,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         var validated = await validator.ValidateAsync(model, token);
         if (!validated.IsValid)
@@ -381,7 +395,8 @@ public sealed class AccountEndpoints : IEndpoint
         var response = await handler.ConfirmEmail(model);
         return response.Match(
             data => TypedResults.Ok(data),
-            errors => Results.Extensions.Problem(errors));
+            errors => Results.Extensions.Problem(errors)
+        );
     }
 
     // POST: api/account/resendConfirmation
@@ -389,7 +404,8 @@ public sealed class AccountEndpoints : IEndpoint
         ResendEmailRequest model,
         IValidator<ResendEmailRequest> validator,
         IResendEmailHandler handler,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         var validated = await validator.ValidateAsync(model, token);
         if (!validated.IsValid)
@@ -400,7 +416,8 @@ public sealed class AccountEndpoints : IEndpoint
         var response = await handler.ResendEmail(model, token);
         return response.Match(
             data => TypedResults.Ok(data),
-            errors => Results.Extensions.Problem(errors));
+            errors => Results.Extensions.Problem(errors)
+        );
     }
 
     // POST: api/account/forgotPassword
@@ -408,7 +425,8 @@ public sealed class AccountEndpoints : IEndpoint
         ForgotPasswordRequest model,
         IValidator<ForgotPasswordRequest> validator,
         IForgotPasswordHandler handler,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         var validated = await validator.ValidateAsync(model, token);
         if (!validated.IsValid)
@@ -419,30 +437,35 @@ public sealed class AccountEndpoints : IEndpoint
         var response = await handler.ForgotPassword(model, token);
         return response.Match(
             data => TypedResults.Ok(data),
-            errors => Results.Extensions.Problem(errors));
+            errors => Results.Extensions.Problem(errors)
+        );
     }
 
     // POST: api/account/{userId}/activate
     public static async Task<IResult> ActivateAccount(
         string userId,
         IActivateAccountHandler handler,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         var response = await handler.DeactivateAccount(userId, token);
         return response.Match(
             data => TypedResults.Ok(data),
-            errors => Results.Extensions.Problem(errors));
+            errors => Results.Extensions.Problem(errors)
+        );
     }
 
     // POST: api/account/{userId}/deactivate
     public static async Task<IResult> DeactivateAccount(
         string userId,
         IDeactivateAccountHandler handler,
-        CancellationToken token)
+        CancellationToken token
+    )
     {
         var response = await handler.DeactivateAccount(userId, token);
         return response.Match(
             data => TypedResults.Ok(data),
-            errors => Results.Extensions.Problem(errors));
+            errors => Results.Extensions.Problem(errors)
+        );
     }
 }
