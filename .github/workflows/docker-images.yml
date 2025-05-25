@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - release/*
-    tags:
-      - "v*.*.*"
 
 env:
   API_IMAGE_NAME: orgName/webapi # Change this to your Docker Hub repository and image name

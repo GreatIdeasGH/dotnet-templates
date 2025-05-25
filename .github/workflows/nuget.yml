@@ -7,7 +7,7 @@ on:
 
 env:
   PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}\packages
-  PROJECT_PATH: templates
+  PROJECT_PATH: templates/GreatIdeas.Projects.Templates.csproj
 
 jobs:
   deploy:
