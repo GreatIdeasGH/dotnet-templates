@@ -11,7 +11,8 @@
     "shortName": "greatideas-webapi",
     "tags": {
         "language": "C#",
-        "type": "project"
+        "type": "solution",
+        "editorTreatAs": "solution"
     },
     "sourceName": "GreatIdeas.Template",
     "preferNameDirectory": true,
