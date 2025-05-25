@@ -24,14 +24,15 @@
     },
     "sources": [
         {
-          "exclude": [
-            ".idea/**/*",
-            ".vs/**",
-            ".vscode/**",
-            ".git/**",
-            ".github/**",
-            ".template.config/**"
-          ]
+            "exclude": [
+                ".idea/**/*",
+                ".vs/**",
+                ".vscode/**",
+                ".git/**",
+                ".github/**",
+                ".template.config/**",
+                "install-template.ps1"
+            ]
         }
     ]
 }
