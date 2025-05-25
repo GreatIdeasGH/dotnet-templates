@@ -1,0 +1,75 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - release/*
+    tags:
+      - "v*.*.*"
+
+env:
+  API_IMAGE_NAME: orgName/webapi # Change this to your Docker Hub repository and image name
+
+jobs:
+  Build_and_Push_API:
+    name: Web API Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Nerdbank.GitVersioning
+        uses: dotnet/nbgv@v0.4.2
+        with:
+          path: .
+
+      - name: Set version
+        run: echo "SimpleVersion=$(nbgv get-version -v SimpleVersion)" >> $GITHUB_ENV
+
+      - name: Generate Docker metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: |
+            docker.io/${{ env.API_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+          flavor: |
+            latest=true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2.0.0
+
+      - name: Login to docker hub
+        uses: docker/login-action@v2.0.0
+        with:
+          registry: ${{ secrets.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build --file src/GreatIdeas.Template.WebAPI/Dockerfile --tag ${{ env.API_IMAGE_NAME }}:${{ env.SimpleVersion }} .
+          docker push ${{ env.API_IMAGE_NAME }}:${{ env.SimpleVersion }}
+
+  release:
+    name: Release pushed tag
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Create Release
+        id: create_release
+        uses: yyx990803/release-tag@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Please refer to [CHANGELOG.md](https://github.com/orgName/repositoryName/blob/release/CHANGELOG.md) for the release notes.
+          # Change this to your repository name
