@@ -4,7 +4,6 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
-        <UserSecretsId>GreatIdeas.Template.WebAPI-DD75B7D5-5405-4724-90EF-A8AD035582F8</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <DockerfileContext>..\..</DockerfileContext>
     </PropertyGroup>

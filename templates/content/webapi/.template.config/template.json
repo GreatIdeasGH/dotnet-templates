@@ -17,10 +17,72 @@
     "sourceName": "GreatIdeas.Template",
     "preferNameDirectory": true,
     "symbols": {
-        "includetest": {
+        "framework": {
             "type": "parameter",
-            "datatype": "bool",
-            "defaultValue": "true"
+            "description": "The target framework for the project.",
+            "datatype": "choice",
+            "choices": [
+                {
+                    "choice": "net9.0",
+                    "description": "Target net9.0"
+                },
+                {
+                    "choice": "net10.0",
+                    "description": "Target net10.0"
+                }
+            ],
+            "replaces": "net9.0",
+            "defaultValue": "net9.0"
+        },
+        "kestrelHttpPortGenerated": {
+            "type": "generated",
+            "generator": "port",
+            "parameters": {
+                "low": 5000,
+                "high": 5300
+            }
+        },
+        "kestrelHttpPortReplacer": {
+            "type": "generated",
+            "generator": "coalesce",
+            "parameters": {
+                "sourceVariableName": "kestrelHttpPort",
+                "fallbackVariableName": "kestrelHttpPortGenerated"
+            },
+            "replaces": "5034"
+        },
+        "kestrelHttpsPortGenerated": {
+            "type": "generated",
+            "generator": "port",
+            "parameters": {
+                "low": 7000,
+                "high": 7300
+            }
+        },
+        "kestrelHttpsPortReplacer": {
+            "type": "generated",
+            "generator": "coalesce",
+            "parameters": {
+                "sourceVariableName": "kestrelHttpsPort",
+                "fallbackVariableName": "kestrelHttpsPortGenerated"
+            },
+            "replaces": "7139"
+        },
+        "AspNetCore9Version": {
+            "type": "generated",
+            "generator": "constant",
+            "parameters": {
+                "value": "9.0.5"
+            },
+            "replaces": "!!ASPNETCORE_9_VERSION!!"
+        },
+        "AspNetCore10Version": {
+            "type": "generated",
+            "generator": "constant",
+            "parameters": {
+                "value": "10.0.0-preview-*"
+            },
+            "replaces": "!!ASPNETCORE_10_VERSION!!"
         }
     },
     "sources": [
@@ -31,9 +93,22 @@
                 ".vscode/**",
                 ".git/**",
                 ".github/**",
-                ".template.config/**",
-                "install-template.ps1"
+                ".template.config/**"
             ]
+        }
+    ],
+    "postActions": [
+        {
+            "id": "restore",
+            "condition": "(!skipRestore)",
+            "description": "Restore NuGet packages required by this project.",
+            "manualInstructions": [
+                {
+                    "text": "Run 'dotnet restore'"
+                }
+            ],
+            "actionId": "e0533eca-d3f9-4fb1-8821-c65fc3e539d8",
+            "continueOnError": true
         }
     ]
 }
