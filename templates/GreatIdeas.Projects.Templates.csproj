@@ -8,7 +8,7 @@
     <Authors>Gerald Maale; GreatIdeas Sofware LLC</Authors>
     <Description>Project template for creating a minimal API project with other projects using clean architecture. This has full complement of JWT identity with role authorization and permissions.</Description>
     <PackageTags>Web API;.NET Aspire</PackageTags>
-    <PackageProjectUrl>https://github.com/geraldmaale/dotnet-templates</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/GreatIdeasGH/dotnet-templates</PackageProjectUrl>
 
     <!-- Keep package type as 'Template' to show the package as a template package on nuget.org and make your template available in dotnet new search.-->
     <PackageType>Template</PackageType>
