@@ -6,7 +6,7 @@ on:
       - "v*"
 
 env:
-  PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}\packages
+  PACKAGE_OUTPUT_DIRECTORY: ${{ github.workspace }}/packages
   PROJECT_PATH: templates/GreatIdeas.Projects.Templates.csproj
 
 jobs:
