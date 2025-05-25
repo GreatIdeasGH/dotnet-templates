@@ -35,5 +35,5 @@ jobs:
       # Run dotnet build and package
       - name: dotnet build
         run: |
-          dotnet restore dotnet build .\templates\content\webapi\GreatIdeas.Template.sln
+          dotnet restore ${{env.PROJECT_PATH}}
           dotnet build ${{env.PROJECT_PATH}} --configuration '${{ env.BUILD_CONFIGURATION }}' --tl
