@@ -23,6 +23,7 @@
         <PackageReference Include="Serilog.Sinks.Console" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\..\aspire\GreatIdeas.Template.ServiceDefaults\GreatIdeas.Template.ServiceDefaults.csproj" />
         <ProjectReference Include="..\GreatIdeas.Template.Application\GreatIdeas.Template.Application.csproj" />
         <ProjectReference Include="..\GreatIdeas.Template.Infrastructure\GreatIdeas.Template.Infrastructure.csproj" />
     </ItemGroup>

@@ -7,7 +7,7 @@ public static class ApplicationActivitySources
     public static string[] GetSourceNames()
     {
         // Get all names for implementations using IRequestCommandHandler
-        var requestHandlers = typeof(ITenantService)
+        var requestHandlers = typeof(IApplicationHandler)
             .Assembly.GetTypes()
             .Where(t =>
                 t.GetInterfaces()
@@ -31,18 +31,7 @@ public static class ApplicationActivitySources
         // Merge the lists
         var activitySourceNames = requestHandlers
             .Concat(repositories)
-            .Concat(
-                new List<string>
-                {
-                    "ExportFileHelper",
-                    "ErrorHandlerEndpoint",
-                    "SendConfirmationEmail",
-                    "SeedDatabase",
-                    "SeedSamples",
-                    "CognitiveEndpoints",
-                    "TranslatorServices"
-                }
-            )
+            .Concat(["ExportFileHelper", "ErrorHandlerEndpoint", "SendConfirmationEmail"])
             .ToList();
 
         return activitySourceNames.ToArray();

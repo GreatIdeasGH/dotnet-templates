@@ -3,10 +3,10 @@
     "author": "Gerald Maale",
     "classifications": [
         "Web API",
-        "Class Library"
+        ".NET Aspire"
     ],
-    "name": "GreatIdeas Web API",
-    "identity": "GreatIdeas.Template.WebAPI",
+    "name": "GreatIdeas Web API Solution",
+    "identity": "GreatIdeas.WebAPI.Template",
     "groupIdentity": "GreatIdeas.Template",
     "shortName": "greatideas-webapi",
     "tags": {
@@ -24,10 +24,14 @@
     },
     "sources": [
         {
-            "exclude": [
-                ".idea/**/*",
-                "src/GreatIdeas.Template.API/obj/**/*"
-            ]
+          "exclude": [
+            ".idea/**/*",
+            ".vs/**",
+            ".vscode/**",
+            ".git/**",
+            ".github/**",
+            ".template.config/**"
+          ]
         }
     ]
 }

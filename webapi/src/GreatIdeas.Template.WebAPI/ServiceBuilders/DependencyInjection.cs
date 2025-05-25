@@ -15,9 +15,6 @@ internal static class DependencyInjection
         ApplicationSettings applicationSettings
     )
     {
-        // Aspire
-        // builder.AddServiceDefaults(applicationSettings, ApplicationActivitySources.GetSourceNames())
-
         builder.Services.AddProblemDetails();
 
         // Timeprovider
@@ -57,12 +54,8 @@ internal static class DependencyInjection
             )
         );
 
-        // Register Microsoft OpenAPI and configure it to use Scalar transformers
-        builder.Services.AddOpenApi(options =>
-        {
-            // Register Scalar transformers
-            //options.AddScalarTransformers()
-        });
+        // Register Microsoft OpenAPI
+        builder.Services.AddOpenApi();
 
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
@@ -83,9 +76,6 @@ internal static class DependencyInjection
     {
         // Seed database
         await SeedDatabase.MigrateDb(app, app.Environment);
-
-        // Aspire endpoints
-        // app.MapDefaultEndpoints(applicationSettings)
 
         app.UseDefaultFiles();
         app.UseStaticFiles();

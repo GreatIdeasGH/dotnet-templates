@@ -1,5 +1,7 @@
 using GreatIdeas.Template.Application.ServiceBuilders;
+using GreatIdeas.Template.Infrastructure;
 using GreatIdeas.Template.Infrastructure.ServiceBuilders;
+using GreatIdeas.Template.ServiceDefaults;
 using GreatIdeas.Template.WebAPI.ServiceBuilders;
 using Serilog;
 
@@ -8,8 +10,9 @@ Log.Information("Starting GreatIdeas.Template.WebAPI...");
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Setup key vault
-// builder.ConfigureKeyVault()
+// Aspire service defaults with ActivitySources
+builder.AddServiceDefaults(ApplicationActivitySources.GetSourceNames());
+
 
 // bind ApplicationSettings
 var section = builder.Configuration.GetSection(ApplicationSettings.SettingsName);
@@ -20,12 +23,6 @@ builder
     .ValidateOnStart();
 var applicationSettings = section.Get<ApplicationSettings>()!;
 
-// Bind EntraID
-// builder
-//     .Services.AddOptions<EntraIdOptions>()
-//     .Bind(builder.Configuration.GetSection(EntraIdOptions.SettingsName))
-//     .ValidateDataAnnotations()
-//     .ValidateOnStart()
 
 builder
     .AddApplicationService(applicationSettings)
@@ -33,6 +30,9 @@ builder
     .AddApiServices(applicationSettings);
 
 var app = builder.Build();
+
+// Aspire endpoints
+app.MapDefaultEndpoints();
 
 await app.UseApiApplication(applicationSettings);
 await app.RunAsync();
