@@ -22,4 +22,8 @@ public static partial class RegexValidator
     // String must be uppercase
     [GeneratedRegex("([A-Z])", RegexOptions.Compiled)]
     public static partial Regex UpperCase();
+
+    // Enter a valid image URL
+    [GeneratedRegex(@"^(https?:\/\/.*\.(?:png|jpg|jpeg|webp))$", RegexOptions.IgnoreCase)]
+    public static partial Regex ImageUrlRegex();
 }

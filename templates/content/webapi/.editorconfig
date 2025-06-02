@@ -35,6 +35,7 @@ dotnet_diagnostic.S6640.severity = error
 dotnet_diagnostic.S1313.severity = error
 dotnet_diagnostic.S6561.severity = error
 dotnet_diagnostic.S6802.severity = error
+dotnet_diagnostic.S125.severity = silent
 
 # Xml files
 [*.xml]

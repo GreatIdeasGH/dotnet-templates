@@ -4,7 +4,7 @@ namespace GreatIdeas.Template.Application.Authorizations.Policies;
 
 public static class AccountPolicy
 {
-    #region Accoun Policies
+    #region Account Policies
 
     public static AuthorizationPolicy CanView()
     {

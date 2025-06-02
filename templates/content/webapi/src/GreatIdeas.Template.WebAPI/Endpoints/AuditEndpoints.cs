@@ -18,7 +18,7 @@ public sealed class AuditEndpoints : IEndpoint
             .WithSummary("Get audits with pagination")
             .Produces<ApiPagingResponse<AuditResponse>>()
             .ProducesCommonForbiddenErrors()
-            .RequireAuthorization(AuditPolicy.CanViewAudit());
+            .RequireAuthorization(AuditPolicy.CanView());
 
         // GET: api/Audit/{auditId}
         group
@@ -28,7 +28,7 @@ public sealed class AuditEndpoints : IEndpoint
             .WithSummary("Get existing audit by id")
             .Produces<AuditDetailResponse>()
             .ProducesCommonForbiddenErrors()
-            .RequireAuthorization(AuditPolicy.CanManageAudit());
+            .RequireAuthorization(AuditPolicy.CanManage());
     }
 
     public static async Task<IResult> GetPagedAudits(

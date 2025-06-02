@@ -1,5 +1,4 @@
-﻿
-using GreatIdeas.Template.Application.Authorizations.PolicyDefinitions;
+﻿using GreatIdeas.Template.Application.Authorizations.PolicyDefinitions;
 
 namespace GreatIdeas.Template.Application.Authorizations.Policies;
 
@@ -7,7 +6,7 @@ public static class AuditPolicy
 {
     #region Audit Policies
 
-    public static AuthorizationPolicy CanViewAudit()
+    public static AuthorizationPolicy CanView()
     {
         return new AuthorizationPolicyBuilder()
             .RequireAuthenticatedUser()
@@ -15,7 +14,7 @@ public static class AuditPolicy
             .Build();
     }
 
-    public static AuthorizationPolicy CanManageAudit()
+    public static AuthorizationPolicy CanManage()
     {
         return new AuthorizationPolicyBuilder()
             .RequireAuthenticatedUser()

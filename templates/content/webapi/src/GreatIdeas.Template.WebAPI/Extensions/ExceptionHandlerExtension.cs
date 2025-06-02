@@ -1,12 +1,12 @@
+using System.Diagnostics;
+using System.Net;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Serilog;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Net;
 using static System.Net.Mime.MediaTypeNames;
+using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 namespace GreatIdeas.Template.WebAPI.Extensions;
 
@@ -122,16 +122,15 @@ public static class ExceptionHandlerExtension
             PostgresException => (HttpStatusCode.UnprocessableEntity, exception.Message),
             DbUpdateException => (HttpStatusCode.UnprocessableEntity, exception.Message),
             BadHttpRequestException => (HttpStatusCode.BadRequest, exception.Message),
-            InvalidOperationException
-                => (
-                    HttpStatusCode.BadRequest,
-                    "Could not complete the operation. Please try again later."
-                ),
+            InvalidOperationException => (
+                HttpStatusCode.BadRequest,
+                "Could not complete the operation. Please try again later."
+            ),
             TaskCanceledException => (HttpStatusCode.BadRequest, "The request was cancelled."),
             FormatException => (HttpStatusCode.BadRequest, exception.Message),
             NpgsqlException => (HttpStatusCode.UnprocessableEntity, exception.Message),
             FileLoadException => (HttpStatusCode.UnprocessableEntity, exception.Message),
-            _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
+            _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred."),
         };
 
         // log exception
@@ -171,5 +170,3 @@ public class CustomExceptionHandler : IExceptionHandler
         return ValueTask.FromResult(false);
     }
 }
-
-
