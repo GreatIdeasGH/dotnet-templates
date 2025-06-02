@@ -18,8 +18,8 @@ public static class AuthorizationServiceCollection
             options.AddPolicy("User", policy => policy.RequireRole("User"));
 
             // Audit Policies
-            options.AddPolicy(AppPermissions.Audit.View, AuditPolicy.CanViewAudit());
-            options.AddPolicy(AppPermissions.Audit.Manage, AuditPolicy.CanManageAudit());
+            options.AddPolicy(AppPermissions.Audit.View, AuditPolicy.CanView());
+            options.AddPolicy(AppPermissions.Audit.Manage, AuditPolicy.CanManage());
 
             // Account Policies
             options.AddPolicy(AppPermissions.Account.View, AccountPolicy.CanView());
