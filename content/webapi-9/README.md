@@ -1,12 +1,12 @@
 # Company.Project
 
-A modern, full-stack fundraising platform built with .NET 9.0.
+A modern backend built with .NET 9.0, ASP.NET Core, Entity Framework Core, MassTransit, PostgreSQL, and others. This project serves as a boilerplate for building scalable web APIs with best practices in mind.
 
 ## 🏗 Architecture
 
 This project follows Clean Architecture principles with clear separation of concerns:
 
-### Backend (.NET 9.0)
+### Backend
 
 - **Domain Layer**: Core business entities and domain logic
 - **Application Layer**: Use cases, business rules, and application services
@@ -24,18 +24,17 @@ This project follows Clean Architecture principles with clear separation of conc
 
 ### Prerequisites
 
-- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-- [Bun](https://bun.sh/) (JavaScript runtime and package manager)
+- [.NET SDK](https://dotnet.microsoft.com/download/dotnet)
 - [PostgreSQL](https://www.postgresql.org/) (for database)
 
 **Backend Development:**
 
 ```bash
 # Build the solution
-dotnet build --configuration Release --tl
+dotnet build Company.Project --tl
 
 # Run tests
-dotnet test --configuration Release --tl
+dotnet test Company.Project --tl
 
 # Run the API server
 dotnet run --project src/Company.Project.WebAPI
@@ -65,7 +64,7 @@ make ef-remove
 │   ├── Company.Project.Domain/           # Domain models and entities
 │   ├── Company.Project.Application/      # Business logic and use cases
 │   ├── Company.Project.Infrastructure/   # Data access and external services
-│   ├── Company.Project.WebAPI/           # REST API controllers and endpoints
+│   ├── Company.Project.WebAPI/           # REST API services and endpoints
 ├── Makefile                              # Development commands
 ├── Company.Project.slnx                  # Visual Studio solution
 └── global.json                           # .NET SDK version configuration
