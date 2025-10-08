@@ -4,8 +4,9 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     <!-- Common Version Variables -->
     <AspireVersion>9.5.1</AspireVersion>
-    <AspNetCoreVersion>9.0.9</AspNetCoreVersion>
-    <EntityFrameworkVersion>9.0.9</EntityFrameworkVersion>
+    <AspNetCoreVersion>!!ASPNETCORE_VERSION!!</AspNetCoreVersion>
+    <EntityFrameworkVersion>!!EFCORE_VERSION!!</EntityFrameworkVersion>
+    <NpgsqlVersion>!!NPGSQL_VERSION!!</NpgsqlVersion>
     <MicrosoftExtensionsVersion>9.0.9</MicrosoftExtensionsVersion>
     <MassTransitVersion>8.5.3</MassTransitVersion>
     <OpenTelemetryVersion>1.12.0</OpenTelemetryVersion>
@@ -68,7 +69,7 @@
       Include="Microsoft.EntityFrameworkCore.Tools"
       Version="$(EntityFrameworkVersion)"
     />
-    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="$(NpgsqlVersion)" />
     <!-- Microsoft Extensions -->
     <PackageVersion
       Include="Microsoft.Extensions.ApiDescription.Server"

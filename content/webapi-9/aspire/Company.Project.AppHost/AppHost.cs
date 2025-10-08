@@ -8,10 +8,10 @@ using System.Diagnostics.CodeAnalysis;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-builder.AddProject<Projects.FundraiserWebAPI>("fundraiser-webapi").WithHttpHealthCheck("/health");
+builder.AddProject<Projects.FundraiserWebAPI>("backend").WithHttpHealthCheck("/health");
 
 // builder
-//     .AddNpmApp("client", "../../src/app.client")
+//     .AddNpmApp("frontend", "../../src/app.client")
 //     .WithReference(webApi)
 //     .WaitFor(webApi)
 //     .WithHttpEndpoint(port: 3000, targetPort: 5173, isProxied: true)

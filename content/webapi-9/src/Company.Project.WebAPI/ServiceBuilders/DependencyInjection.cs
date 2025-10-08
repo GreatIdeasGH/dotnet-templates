@@ -53,7 +53,8 @@ internal static class DependencyInjection
 
         // Register Microsoft OpenAPI
         builder.Services.AddOpenApi();
-        builder.AddSwaggerDocs();
+        // Register Swagger/OpenAPI services
+        // builder.AddSwaggerDocs();
 
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
@@ -82,7 +83,8 @@ internal static class DependencyInjection
         app.UseRouting();
 
         // OpenAPI + Swagger/Scalar
-        app.MapOpenApiWithSwagger();
+        app.MapOpenApiWithScalar();
+        // app.MapOpenApiWithSwagger();
 
         app.UseCors("AllowAll");
 

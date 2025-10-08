@@ -4,8 +4,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerfileContext>..\..</DockerfileContext>
     <UserSecretsId>USER_SECRETS_ID</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
