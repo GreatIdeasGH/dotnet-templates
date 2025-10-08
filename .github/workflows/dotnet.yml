@@ -10,7 +10,7 @@ on:
 
 env:
   BUILD_CONFIGURATION: "Release" # set this to the appropriate build configuration
-  PROJECT_PATH: "templates/content/webapi/GreatIdeas.Template.sln" # set this to the solution file name
+  PROJECT_PATH: "content/webapi-9/Company.Project.slnx" # set this to the solution file name
 
 jobs:
   build_test:
