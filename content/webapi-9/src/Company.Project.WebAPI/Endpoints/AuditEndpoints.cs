@@ -9,7 +9,7 @@ public sealed class AuditEndpoints : IEndpoint
 {
     public void MapEndpoints(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ApiRouteNames.AuditEndpoint).WithTags("audits").WithOpenApi();
+        var group = app.MapGroup(ApiRouteNames.AuditEndpoint).WithTags("audits");
 
         // GET: api/Audit/paged
         group

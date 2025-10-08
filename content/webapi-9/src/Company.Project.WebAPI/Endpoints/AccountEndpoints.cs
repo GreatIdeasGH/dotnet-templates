@@ -25,7 +25,7 @@ public sealed class AccountEndpoints : IEndpoint
 {
     public void MapEndpoints(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup(ApiRouteNames.AccountEndpoint).WithTags("accounts").WithOpenApi();
+        var group = app.MapGroup(ApiRouteNames.AccountEndpoint).WithTags("accounts");
 
         // POST: api/account/login
         group

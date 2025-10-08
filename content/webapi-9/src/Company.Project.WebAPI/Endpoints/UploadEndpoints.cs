@@ -8,7 +8,7 @@ public sealed class UploadEndpoints : IEndpoint
 {
     public void MapEndpoints(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("api/uploads").WithTags("uploads").WithOpenApi();
+        var group = app.MapGroup("api/uploads").WithTags("uploads");
 
         // POST: api/upload
         group
