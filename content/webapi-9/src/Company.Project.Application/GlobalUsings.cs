@@ -1,0 +1,17 @@
+﻿global using System.Diagnostics;
+global using System.Reflection;
+global using ErrorOr;
+global using FluentValidation;
+global using Company.Project.Application.Abstractions.Repositories;
+global using Company.Project.Application.Abstractions.Services;
+global using Company.Project.Application.Common.Constants;
+global using Company.Project.Application.Common.Extensions;
+global using Company.Project.Application.Responses;
+global using Company.Project.Application.Services;
+global using Company.Project.Domain.Entities;
+global using GreatIdeas.PagedList;
+global using MassTransit;
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;

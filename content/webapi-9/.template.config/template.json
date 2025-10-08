@@ -1,0 +1,155 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "Gerald Maale",
+    "classifications": [
+        "Web API",
+        "Aspire"
+    ],
+    "name": "GreatIdeas Web API (Clean Arch)",
+    "description": "A project template for creating a RESTful Web API using ASP.NET Core minimal APIs, with support for OpenAPI, authentication and authorization.",
+    "identity": "GreatIdeas.Template.WebAPI.9.0",
+    "groupIdentity": "GreatIdeas.Template.WebAPI",
+    "shortName": "greatideas-webapi",
+    "tags": {
+        "language": "C#",
+        "type": "solution",
+        "editorTreatAs": "solution"
+    },
+    "sourceName": "Company.Project",
+    "defaultName": "CleanArch",
+    "preferNameDirectory": true,
+    "guids": [
+        "73f7fec4-a664-4b11-b193-81e94108ef16",
+        "ed9bb02a-b723-4290-a6a8-c096682d3305",
+        "bbb5cd2c-6674-425f-9804-cca94bfd162b",
+        "3bfbbd32-e9f7-44cc-97a7-2b239f2e2ca0"
+    ],
+    "symbols": {
+        "framework": {
+            "type": "parameter",
+            "description": "The target framework for the project.",
+            "datatype": "choice",
+            "choices": [
+                {
+                    "choice": "net9.0",
+                    "description": "Target net9.0"
+                }
+            ],
+            "replaces": "net9.0",
+            "defaultValue": "net9.0"
+        },
+        "id": {
+            "type": "generated",
+            "generator": "guid",
+            "replaces": "USER_SECRETS_ID",
+            "parameters": {
+                "defaultFormat": "d"
+            }
+        },
+        "skipRestore": {
+            "type": "parameter",
+            "datatype": "bool",
+            "description": "If specified, skips the automatic restore of the project on create.",
+            "defaultValue": "false"
+        },
+        "kestrelHttpPortGenerated": {
+            "type": "generated",
+            "generator": "port",
+            "parameters": {
+                "low": 5000,
+                "high": 5300
+            }
+        },
+        "kestrelHttpPortReplacer": {
+            "type": "generated",
+            "generator": "coalesce",
+            "parameters": {
+                "sourceVariableName": "kestrelHttpPort",
+                "fallbackVariableName": "kestrelHttpPortGenerated"
+            },
+            "replaces": "5034"
+        },
+        "kestrelHttpsPortGenerated": {
+            "type": "generated",
+            "generator": "port",
+            "parameters": {
+                "low": 7000,
+                "high": 7300
+            }
+        },
+        "kestrelHttpsPortReplacer": {
+            "type": "generated",
+            "generator": "coalesce",
+            "parameters": {
+                "sourceVariableName": "kestrelHttpsPort",
+                "fallbackVariableName": "kestrelHttpsPortGenerated"
+            },
+            "replaces": "7139"
+        },
+        "kestrelHttpsPort": {
+            "type": "parameter",
+            "datatype": "integer",
+            "description": "Port number to use for the HTTPS endpoint in launchSettings.json. This option is only applicable when the parameter no-https is not used (no-https will be ignored if Individual auth is used)."
+        },
+        "AspNetCore9Version": {
+            "type": "generated",
+            "generator": "constant",
+            "parameters": {
+                "value": "9.0.9"
+            },
+            "replaces": "!!ASPNETCORE_VERSION!!"
+        },
+        "EFCore9Version": {
+            "type": "generated",
+            "generator": "constant",
+            "parameters": {
+                "value": "9.0.9"
+            },
+            "replaces": "!!EFCORE_VERSION!!"
+        },
+        "Npgsql9Version": {
+            "type": "generated",
+            "generator": "constant",
+            "parameters": {
+                "value": "9.0.4"
+            },
+            "replaces": "!!NPGSQL_VERSION!!"
+        }
+    },
+    "sources": [
+        {
+            "source": "./",
+            "target": "./",
+            "exclude": [
+                ".idea/**/*",
+                ".vs/**",
+                ".vscode/**",
+                ".git/**",
+                ".github/**",
+                ".template.config/**",
+                "**/bin/**",
+                "**/obj/**",
+                "**/logs/**"
+            ]
+        }
+    ],
+    "primaryOutputs": [
+        {
+            "path": "GreatIdeas.slnx"
+        }
+    ],
+    "postActions": [
+        {
+            "id": "restore",
+            "condition": "(!skipRestore)",
+            "description": "Restore NuGet packages required by this project.",
+            "manualInstructions": [
+                {
+                    "text": "Run 'dotnet restore'"
+                }
+            ],
+            "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+            "continueOnError": true
+        }
+    ]
+}

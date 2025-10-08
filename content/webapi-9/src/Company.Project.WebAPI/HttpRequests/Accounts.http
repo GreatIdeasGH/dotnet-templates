@@ -1,0 +1,160 @@
+@baseUrl = https://localhost:7193/api/accounts
+@userId=b920c87d-6947-4c03-991f-1776e4684603
+@bearerToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIyOGZkNjJkYi05ZDc1LTQ2ZDgtYmNiZS1hZTYyY2MzM2JlZjQiLCJpZCI6ImI5MjBjODdkLTY5NDctNGMwMy05OTFmLTE3NzZlNDY4NDYwMyIsIm5hbWUiOiJBZG1pbiBOYW1lIiwicGhvbmVfbnVtYmVyIjoiMDI0MzU4NjE5OCIsImVtYWlsIjoiYWRtaW5AZW1haWwuY29tIiwidXNlcm5hbWUiOiJhZG1pbkBlbWFpbC5jb20iLCJyb2xlIjoiQWRtaW4iLCJwZXJtaXNzaW9uIjpbIlZpZXcuQWNjb3VudCIsIk1hbmFnZS5BY2NvdW50IiwiRGVsZXRlLkFjY291bnQiLCJWaWV3LkNhbXBhaWduIiwiTWFuYWdlLkNhbXBhaWduIiwiRGVsZXRlLkNhbXBhaWduIiwiVmlldy5Eb25hdGlvbiIsIk1hbmFnZS5Eb25hdGlvbiIsIkRlbGV0ZS5Eb25hdGlvbiIsIlZpZXcuRG9ub3IiLCJNYW5hZ2UuRG9ub3IiLCJEZWxldGUuRG9ub3IiLCJWaWV3LkF1ZGl0TG9ncyIsIk1hbmFnZS5BdWRpdExvZ3MiLCJWaWV3LkRhc2hib2FyZCIsIlZpZXcuU2V0dGluZ3MiLCJNYW5hZ2UuU2V0dGluZ3MiLCJWaWV3LlJlcG9ydHMiXSwibmJmIjoxNzU2Nzc2MTgwLCJleHAiOjE3NTY3ODY5ODAsImlhdCI6MTc1Njc3NjE4MCwiaXNzIjoiR3JlYXRJZGVhcy5GdW5kcmFpc2VyLldlYkFQSSIsImF1ZCI6IkdyZWF0SWRlYXMuRnVuZHJhaXNlci5XZWJBUEkifQ.ez5xq7ZNKmahtq-O8f8Jrubbjm_CUAAElGCM-KXuLhU
+
+### Login User
+
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "uSER",
+  "password": "P@ssword1"
+}
+
+### Login Admin
+
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "P@ssword1"
+}
+
+### Get account
+GET {{baseUrl}}/{{userId}}
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+
+### Get paged accounts
+GET {{baseUrl}}/paged?pageNumber=1&pageSize=10
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+### Create account 
+
+POST {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "username": "geralds@email.com",
+  "fullName": "Gerald Maale",
+  "email": "geralds@email.com",
+  "phoneNumber": "0210000002",
+  "role": "Admin",
+  "password": "P@ssword1",
+  "confirmPassword": "P@ssword1"
+}
+
+### Update profile
+
+PATCH {{baseUrl}}/{{userId}}/profile
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "fullName": "Gerald Maale",
+  "phoneNumber": "0210000002"
+}
+
+### Update account
+
+PUT {{baseUrl}}/{{userId}}
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "fullName": "Gerald Maale",
+  "username": "gerald@email.com",
+  "email": "gerald@email.com",
+  "phoneNumber": "0210000033",
+  "role": "Admin"
+}
+
+### Delete account
+DELETE {{baseUrl}}/8d4113ec-906d-4180-a8fc-12d0fd99037f
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+### Reset password
+PATCH {{baseUrl}}/6d1a2838-d15c-4435-99ed-6ad8aac1d0b3/resetPassword
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "newPassword": "P@ssword1",
+  "confirmNewPassword": "P@ssword1"
+}
+
+### Change password
+POST {{baseUrl}}/{{userId}}/changePassword
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "oldPassword": "P@ssword1",
+  "newPassword": "P@ssword"
+}
+
+### Refresh token
+POST {{baseUrl}}/refreshToken
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3MDY1YjhhNy0wMGE3LTRkNDYtYjg2MC1kMTE3M2Y0MmQ5YmUiLCJpZCI6ImYzNzk5NTdiLWFiZmMtNDcyOC05NzI2LWQzN2VlMGJhYWNkOCIsImVtYWlsIjoiZ2VyYWxkQGVtYWlsLmNvbSIsInVzZXJuYW1lIjoiZ2VyYWxkQGVtYWlsLmNvbSIsIm5hbWUiOiJHZXJhbGQgTWFhbGUiLCJwaG9uZV9udW1iZXIiOiIwMjEwMDAwMDAyIiwicm9sZSI6IkFkbWluIiwicGVybWlzc2lvbiI6WyJWaWV3LkFjY291bnQiLCJNYW5hZ2UuQWNjb3VudCIsIkRlbGV0ZS5BY2NvdW50IiwiVmlldy5BdWRpdExvZ3MiLCJNYW5hZ2UuQXVkaXRMb2dzIl0sIm5iZiI6MTc0Nzg2ODU1NCwiZXhwIjoxNzQ3ODc5MzU0LCJpYXQiOjE3NDc4Njg1NTQsImlzcyI6IkdyZWF0SWRlYXMuVGVtcGxhdGUuV2ViQVBJIiwiYXVkIjoiR3JlYXRJZGVhcy5UZW1wbGF0ZS5XZWJBUEkifQ.44QgPei5oULsEcPm22fwTGU80cnugGV-H9D9d0ejCpY",
+  "refreshToken": "FYS7pfUn+QknB8xG3oOsJFfGLLi4z+sDw79bn/WFK2I="
+}
+
+### Confirm account
+POST {{baseUrl}}/confirmAccount
+Content-Type: application/json
+
+{
+  "userId": "string",
+  "confirmationCode": "string"
+}
+
+### Resend confirmation email
+POST {{baseUrl}}/resendConfirmation
+Content-Type: application/json
+
+{
+  "email": "string"
+}
+
+### Forgotten password
+POST {{baseUrl}}/forgotPassword
+Content-Type: application/json
+
+{
+  "email": "gerald@email.com"
+}
+
+### Activate account
+POST {{baseUrl}}/6d1a2838-d15c-4435-99ed-6ad8aac1d0b3/activate
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+### Deactivate account
+POST {{baseUrl}}/6d1a2838-d15c-4435-99ed-6ad8aac1d0b3/deactivate
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+### User Sessions
+GET {{baseUrl}}/{{userId}}/sessions?pageNumber=1&pageSize=10
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}
+
+### Logout account
+POST {{baseUrl}}/logout/01990813-976b-784d-9f7f-c3e4726ac864
+Content-Type: application/json
+Authorization: Bearer {{bearerToken}}

@@ -1,0 +1,24 @@
+---
+services:
+  fundraiser-app:
+    build:
+      context: .
+      dockerfile: src/GreatIdeas.WebAPI/Dockerfile
+    image: greatideasgh/fundraiser:local
+    container_name: fundraiser-dev
+    restart: always
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Staging"
+      ApplicationSettings:Database:PostgresConnection: "Server=host.docker.internal;Port=5433;Database=FundraiserDb-staging;user id=appuser;password=adminPassword;pooling=true"
+      ApplicationSettings:PaystackSettings:PublicKey: "pk_test_bfa08aa20317f1bc0a5d14dfbae7abc047726c09"
+      ApplicationSettings:PaystackSettings:SecretKey: "sk_test_0f8d673902a2357e0b6329e85ceddeb8bf4e95ed"
+      ApplicationSettings:PaystackSettings:IsEnabled: true
+    ports:
+      - "7022:8080"
+    volumes:
+      - fundraiser-beta:/app/wwwroot/campaigns
+      - fundraiser-beta:/app/wwwroot/donations
+
+volumes:
+  fundraiser-beta:
+    driver: local

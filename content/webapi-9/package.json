@@ -1,0 +1,10 @@
+{
+  "name": "greatideas.funder",
+  "dependencies": {},
+  "devDependencies": {
+    "husky": "^9.1.7"
+  },
+  "scripts": {
+    "prepare": "husky"
+  }
+}
