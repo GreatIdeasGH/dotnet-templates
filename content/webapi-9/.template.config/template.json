@@ -129,13 +129,14 @@
                 ".template.config/**",
                 "**/bin/**",
                 "**/obj/**",
-                "**/logs/**"
+                "**/logs/**",
+                "**/.aspire/**"
             ]
         }
     ],
     "primaryOutputs": [
         {
-            "path": "GreatIdeas.slnx"
+            "path": "Company.Project.slnx"
         }
     ],
     "postActions": [

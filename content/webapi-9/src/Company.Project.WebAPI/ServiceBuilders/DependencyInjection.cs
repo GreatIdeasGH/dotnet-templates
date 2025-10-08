@@ -1,8 +1,6 @@
 ﻿using System.Threading.RateLimiting;
-
 using Company.Project.WebAPI.Endpoints;
 using Company.Project.WebAPI.Extensions;
-
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.FileProviders;
@@ -80,16 +78,6 @@ internal static class DependencyInjection
         await SeedDatabase.MigrateDb(app, app.Environment);
 
         app.UseStaticFiles();
-        app.UseStaticFiles(
-            new StaticFileOptions
-            {
-                FileProvider = new PhysicalFileProvider(
-                    // Use the wwwroot/dist folder for frontend app
-                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/dist")
-                ),
-                RequestPath = "",
-            }
-        );
 
         app.UseRouting();
 
@@ -112,9 +100,6 @@ internal static class DependencyInjection
 
         // Map endpoints
         app.MapWebAPIEndpoints();
-
-        // Serve the frontend app
-        app.MapFallbackToFile("dist/index.html");
 
         return app;
     }

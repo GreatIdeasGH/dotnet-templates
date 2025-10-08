@@ -1,5 +1,5 @@
 {
-  "name": "greatideas.funder",
+  "name": "company.project",
   "dependencies": {},
   "devDependencies": {
     "husky": "^9.1.7"

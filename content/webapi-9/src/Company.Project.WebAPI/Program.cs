@@ -1,14 +1,12 @@
-using Company.Project.WebAPI.ServiceBuilders;
-
 using Company.Project.Application.ServiceBuilders;
 using Company.Project.Infrastructure;
 using Company.Project.Infrastructure.ServiceBuilders;
 using Company.Project.ServiceDefaults;
-
+using Company.Project.WebAPI.ServiceBuilders;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-Log.Information("Starting Fundraiser WebAPI...");
+Log.Information("Starting Company.Project.WebAPI...");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,11 +39,11 @@ try
 }
 catch (HostAbortedException)
 {
-    Log.Warning("Fundraiser WebAPI host aborted!");
+    Log.Warning("Company.Project.WebAPI host aborted!");
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Fundraiser WebAPI terminated unexpectedly!");
+    Log.Fatal(ex, "Company.Project.WebAPI terminated unexpectedly!");
 }
 finally
 {
