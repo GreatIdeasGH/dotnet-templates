@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-
 using Scalar.AspNetCore;
 
 namespace Company.Project.WebAPI.Extensions;
@@ -16,13 +15,13 @@ internal static class ScalarOpenApiExtensions
             options =>
             {
                 options
-                    .WithTitle("Fundraiser WebAPI")
+                    .WithTitle("Company.Project.WebAPI")
                     .AddPreferredSecuritySchemes(JwtBearerDefaults.AuthenticationScheme)
                     .AddHttpAuthentication(
                         JwtBearerDefaults.AuthenticationScheme,
                         opt =>
                         {
-                            opt.Description = "Fundraiser WebAPI";
+                            opt.Description = "Company.Project.WebAPI";
                         }
                     );
             }

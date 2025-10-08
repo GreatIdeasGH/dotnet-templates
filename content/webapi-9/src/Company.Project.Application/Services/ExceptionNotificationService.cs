@@ -1,8 +1,6 @@
 ﻿using System.Web;
-
 using Company.Project.Application.Common;
 using Company.Project.Application.Common.Options;
-
 using Microsoft.Extensions.Options;
 
 namespace Company.Project.Application.Services;
@@ -44,11 +42,11 @@ public sealed class ExceptionNotificationService(
                 <code>{HttpUtility.HtmlEncode(exception.InnerException?.Message ?? "No Inner Exception")}</code>
                 <p>Please take the necessary actions to resolve the following issue.</p>
                 <footer>
-                    <p>Automated email,<br/>GreatIdeas Fundraiser Dev Team</p>
+                    <p>Automated email,<br/>Company.Project Dev Team</p>
                 </footer>
                 """;
 
-        var toAddress = "support@greatideasgh.org";
+        var toAddress = "support@domain.com";
 
         try
         {
@@ -56,10 +54,10 @@ public sealed class ExceptionNotificationService(
                 logicAppUrl: emailSettings.LogicAppUrl,
                 subject: $"{subject}: {TimeProvider.System.GetLocalNow()}",
                 body: htmlContent,
-                name: "GreatIdeas Fundraiser Dev Team",
+                name: "Company.Project Dev Team",
                 to: toAddress,
                 from: $"{emailSettings.FromName} <{emailSettings.FromAddress}>",
-                cc: "geraldmaale@hotmail.com",
+                cc: "admin@domain.com",
                 cancellationToken: default
             );
             logger.LogToInfo($"Exception email sent successfully to {toAddress}");

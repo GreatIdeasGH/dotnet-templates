@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-
 using Scalar.AspNetCore;
 
 namespace Company.Project.WebAPI.Extensions;
@@ -15,9 +14,9 @@ internal static class SwaggerOpenApiExtensions
                 "v1",
                 new Microsoft.OpenApi.Models.OpenApiInfo
                 {
-                    Title = "Fundraiser WebAPI",
+                    Title = "Company.Project.WebAPI",
                     Version = "v1",
-                    Description = "Fundraiser WebAPI Documentation",
+                    Description = "Company.Project.WebAPI Documentation",
                 }
             );
             options.AddSecurityDefinition(
@@ -49,10 +48,6 @@ internal static class SwaggerOpenApiExtensions
             );
         });
 
-        // Add FV
-        //builder.Services.AddFluentValidationAutoValidation();
-        //builder.Services.AddFluentValidationClientsideAdapters();
-
         return builder;
     }
 
@@ -69,9 +64,8 @@ internal static class SwaggerOpenApiExtensions
         app.UseSwaggerUI(options =>
         {
             options.RoutePrefix = "api/docs";
-            options.SwaggerEndpoint("/openapi/v1.json", "Fundraiser WebAPI");
-            options.DocumentTitle = "Fundraiser WebAPI Documentation";
-            options.InjectStylesheet("/swagger-ui/custom.css");
+            options.SwaggerEndpoint("/openapi/v1.json", "Company.Project.WebAPI");
+            options.DocumentTitle = "Company.Project.WebAPI Documentation";
         });
         return app;
     }
