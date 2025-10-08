@@ -20,27 +20,15 @@
     "iisHttpsPort": {
       "isHidden": true
     },
-    "ExcludeLaunchSettings": {
-      "longName": "exclude-launch-settings",
-      "shortName": ""
-    },
     "UserSecretsId": {
       "isHidden": true
     },
     "NoHttps": {
       "longName": "no-https",
       "shortName": ""
-    },
-    "UseProgramMain": {
-      "longName": "use-program-main",
-      "shortName": ""
-    },
-    "LocalhostTld": {
-      "longName": "localhost-tld",
-      "shortName": ""
     }
   },
   "usageExamples": [
-    "-int auto --auth individual --use-local-db"
+    "dotnet new webapi -n MyWebApi --framework net10.0 --no-https --no-restore"
   ]
 }
