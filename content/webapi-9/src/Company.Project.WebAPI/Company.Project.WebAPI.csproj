@@ -21,8 +21,8 @@
     <PackageReference Include="Serilog.Sinks.Console" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\aspire\Company.Project.ServiceDefaults\Company.Project.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Company.Project.Application\Company.Project.Application.csproj" />
     <ProjectReference Include="..\Company.Project.Infrastructure\Company.Project.Infrastructure.csproj" />
+    <ProjectReference Include="..\Company.Project.ServiceDefaults\Company.Project.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>

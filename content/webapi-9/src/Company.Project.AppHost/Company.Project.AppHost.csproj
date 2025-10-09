@@ -12,25 +12,14 @@
     <PackageReference Include="Aspire.Hosting.NodeJs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference
-      Include="..\..\src\Company.Project.WebAPI\Company.Project.WebAPI.csproj"
-      AspireProjectMetadataTypeName="FundraiserWebAPI"
-    />
+    <ProjectReference Include="..\Company.Project.WebAPI\Company.Project.WebAPI.csproj" />
   </ItemGroup>
   <Target Name="RestoreNpm" BeforeTargets="Build" Condition=" '$(DesignTimeBuild)' != 'true' ">
     <ItemGroup>
       <PackageJsons Include="..\*\package.json" />
     </ItemGroup>
     <!--Run the application-->
-    <Exec
-      Command="pnpm run dev"
-      WorkingDirectory="%(PackageJsons.RootDir)%(PackageJsons.Directory)"
-      Condition="Exists('%(PackageJsons.RootDir)%(PackageJsons.Directory)/node_modules')"
-    />
-    <Exec
-      Command="pnpm run dev"
-      WorkingDirectory="%(PackageJsons.RootDir)%(PackageJsons.Directory)"
-      Condition="Exists('%(PackageJsons.RootDir)%(PackageJsons.Directory)/node_modules')"
-    />
+    <Exec Command="pnpm run dev" WorkingDirectory="%(PackageJsons.RootDir)%(PackageJsons.Directory)" Condition="Exists('%(PackageJsons.RootDir)%(PackageJsons.Directory)/node_modules')" />
+    <Exec Command="pnpm run dev" WorkingDirectory="%(PackageJsons.RootDir)%(PackageJsons.Directory)" Condition="Exists('%(PackageJsons.RootDir)%(PackageJsons.Directory)/node_modules')" />
   </Target>
 </Project>
