@@ -12,7 +12,7 @@ public sealed class UploadFileConsumer(ILogger<UploadFileConsumer> logger, IBlob
     : IConsumer<UploadFileEvent>
 {
     private static readonly ActivitySource ActivitySource = new(nameof(UploadFileConsumer));
-    private static readonly string ContainerName = "campaigns";
+    private static readonly string ContainerName = "assets";
 
     public async Task Consume(ConsumeContext<UploadFileEvent> context)
     {

@@ -8,8 +8,8 @@
     <File Path="version.json" />
   </Folder>
   <Folder Name="/aspire/">
-    <Project Path="aspire/Company.Project.AppHost/Company.Project.AppHost.csproj" />
-    <Project Path="aspire/Company.Project.ServiceDefaults/Company.Project.ServiceDefaults.csproj" />
+    <Project Path="src/Company.Project.AppHost/Company.Project.AppHost.csproj" />
+    <Project Path="src/Company.Project.ServiceDefaults/Company.Project.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Company.Project.Application/Company.Project.Application.csproj" />
