@@ -10,11 +10,4 @@ public sealed record LoginResponse
     public Guid SessionId { get; set; }
 }
 
-public sealed record LoginRequest
-{
-    [Required]
-    public string Username { get; set; } = string.Empty;
-
-    [Required]
-    public string Password { get; set; } = string.Empty;
-}
+public record LoginRequest(string Username, string Password);
